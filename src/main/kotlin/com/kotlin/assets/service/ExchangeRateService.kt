@@ -4,6 +4,7 @@ import com.kotlin.assets.entity.ExchangeRate
 import com.kotlin.assets.repository.ExchangeRateRepository
 import com.kotlin.assets.service.client.NbuDataClient
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -12,6 +13,7 @@ class ExchangeRateService(
     val repository: ExchangeRateRepository,
     private val nbuDataClient: NbuDataClient
 ) {
+    @Transactional
     fun getRateForDate(date: LocalDate): BigDecimal {
         val exchangeRate = repository.findByDate(date) ?: fetchAndSaveRate(date)
         return exchangeRate.nbuRate

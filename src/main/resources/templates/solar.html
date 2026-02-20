@@ -390,22 +390,6 @@
     <span th:text="${message}"></span>
   </div>
 
-  <div class="upload-card">
-    <p class="section-label">Import Statement</p>
-    <form method="POST" action="/green" enctype="multipart/form-data" id="upload-form">
-      <div class="drop-zone" id="drop-zone">
-        <input type="file" name="file" required id="file-input" accept=".xlsx,.xls,.csv"/>
-        <span class="drop-icon">🌤️</span>
-        <p class="drop-label">
-          Drop your bank export here or <strong>browse files</strong><br>
-          <span style="font-size:12px; opacity:0.7;">.xlsx · .xls · .csv</span>
-        </p>
-      </div>
-      <p id="file-name"></p>
-      <button type="submit" class="submit-btn">⚡ Analyse Savings</button>
-    </form>
-  </div>
-
   <div class="divider">transactions</div>
 
   <div class="results">
@@ -428,9 +412,9 @@
         <tbody>
         <tr th:each="report : ${reports}">
           <td th:text="${report.date}">—</td>
-          <td th:text="${report.amount}" style="text-align:center">—</td>
+          <td th:text="${report.amount} + '₴'" style="text-align:center">—</td>
           <td th:text="${report.exchangeRate}" style="text-align:center">—</td>
-          <td th:text="${report.usdValue}" style="text-align:center">—</td>
+          <td th:text="${report.usdValue} + '$'" style="text-align:center">—</td>
         </tr>
         </tbody>
       </table>
@@ -441,6 +425,24 @@
       <p>No records yet.<br>Upload a statement above to see your solar savings.</p>
     </div>
   </div>
+
+  <div class="upload-card">
+    <p class="section-label">Import Statement</p>
+    <form method="POST" action="/green" enctype="multipart/form-data" id="upload-form">
+      <div class="drop-zone" id="drop-zone">
+        <input type="file" name="file" required id="file-input" accept=".xlsx,.xls,.csv"/>
+        <span class="drop-icon">🌤️</span>
+        <p class="drop-label">
+          Drop your bank export here or <strong>browse files</strong><br>
+          <span style="font-size:12px; opacity:0.7;">.xlsx · .xls · .csv</span>
+        </p>
+      </div>
+      <p id="file-name"></p>
+      <button type="submit" class="submit-btn">⚡ Analyse Savings</button>
+    </form>
+  </div>
+
+
 
 </div>
 

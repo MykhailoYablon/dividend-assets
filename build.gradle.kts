@@ -4,6 +4,7 @@ plugins {
 	id("org.springframework.boot") version "4.0.2"
 	id("io.spring.dependency-management") version "1.1.7"
 	kotlin("plugin.jpa") version "2.2.21"
+	kotlin("kapt") version "2.3.10"
 }
 
 group = "com.kotlin"
@@ -12,7 +13,7 @@ description = "Demo project for Spring Boot"
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(23)
+		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
 
@@ -29,13 +30,17 @@ dependencies {
 	runtimeOnly("org.postgresql:postgresql")
 
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-scalar:2.8.15")
-	implementation("com.opencsv:opencsv:5.9")
+	implementation("com.opencsv:opencsv:5.12.0")
+	implementation("org.mapstruct:mapstruct:1.6.3")
+
 
 	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-validation-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+	kapt("org.mapstruct:mapstruct-processor:1.6.3")
 }
 
 kotlin {

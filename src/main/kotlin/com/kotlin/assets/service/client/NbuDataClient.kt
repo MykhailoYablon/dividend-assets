@@ -1,10 +1,12 @@
 package com.kotlin.assets.service.client
 
 import org.springframework.core.ParameterizedTypeReference
+import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
 import java.math.BigDecimal
 import java.time.LocalDate
 
+@Service
 class NbuDataClient(val nbuClient: RestClient) {
 
     val nbuUrl: String = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchangenew"
@@ -17,8 +19,8 @@ class NbuDataClient(val nbuClient: RestClient) {
                     + "&date=" + requestDate
         )
             .retrieve()
-            .body<MutableList<NbuExchangeRate?>?>(object :
-                ParameterizedTypeReference<MutableList<NbuExchangeRate?>?>() {
+            .body(object :
+                ParameterizedTypeReference<MutableList<NbuExchangeRate>>() {
             })
 
         return BigDecimal(exchangeRates?.first()?.rate)

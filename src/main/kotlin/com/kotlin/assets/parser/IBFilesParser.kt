@@ -4,6 +4,7 @@ import com.kotlin.assets.dto.ib.IBRecord
 import com.kotlin.assets.dto.ib.IbData
 import com.kotlin.assets.dto.ib.ParsedData
 import com.opencsv.bean.CsvToBeanBuilder
+import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import java.io.StringReader
 import java.time.LocalDate
@@ -11,6 +12,7 @@ import java.util.regex.Matcher
 import java.util.regex.Pattern
 import kotlin.collections.map
 
+@Service
 class IBFilesParser {
 
     val SYMBOL_PATTERN: Pattern = Pattern.compile("^([A-Z]+)(?=\\()")
@@ -56,6 +58,7 @@ class IBFilesParser {
                     .withIgnoreLeadingWhiteSpace(true)
                     .build()
                     .parse()
+                    .filter { r -> !r.date.isEmpty() }
                     .map { r ->
                         IbData(extractSymbol(r.description), LocalDate.parse(r.date), r.amount)
                     }

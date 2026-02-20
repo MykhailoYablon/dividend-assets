@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Solar Savings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+        --sky:       #e8f4f0;
+        --earth:     #1a2e1f;
+        --leaf:      #2d5a27;
+        --sun:       #f5a623;
+        --sun-light: #fff3d6;
+        --green:     #3db554;
+        --green-dim: rgba(61, 181, 84, 0.12);
+        --panel:     #ffffff;
+        --border:    #d4e8d0;
+        --text:      #1a2e1f;
+        --muted:     #6b8f6e;
+        --radius:    14px;
+    }
+
+    body {
+        font-family: 'Outfit', sans-serif;
+        background: var(--sky);
+        color: var(--text);
+        min-height: 100vh;
+        overflow-x: hidden;
+        position: relative;
+    }
+
+    body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background:
+            radial-gradient(ellipse 80% 50% at 70% -10%, #ffe8a0 0%, transparent 60%),
+            radial-gradient(ellipse 60% 40% at 100% 0%, #ffd166 0%, transparent 50%),
+            linear-gradient(180deg, #cdeee3 0%, #e8f4f0 40%, #f0faf5 100%);
+        z-index: 0;
+    }
+
+    .sun-orb {
+        position: fixed;
+        top: -60px;
+        right: 80px;
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background: radial-gradient(circle, #ffe066 30%, #f5a623 70%, transparent 100%);
+        box-shadow: 0 0 60px 20px rgba(245,166,35,0.25), 0 0 120px 60px rgba(245,166,35,0.10);
+        animation: pulse-sun 4s ease-in-out infinite;
+        z-index: 0;
+    }
+
+    @keyframes pulse-sun {
+        0%, 100% { box-shadow: 0 0 60px 20px rgba(245,166,35,0.25), 0 0 120px 60px rgba(245,166,35,0.10); }
+        50%       { box-shadow: 0 0 80px 30px rgba(245,166,35,0.35), 0 0 160px 80px rgba(245,166,35,0.15); }
+    }
+
+    .panel-deco {
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        height: 90px;
+        background:
+            repeating-linear-gradient(90deg,  rgba(45,90,39,0.07) 0px, rgba(45,90,39,0.07) 1px, transparent 1px, transparent 48px),
+            repeating-linear-gradient(180deg, rgba(45,90,39,0.07) 0px, rgba(45,90,39,0.07) 1px, transparent 1px, transparent 28px);
+        z-index: 0;
+    }
+
+    .page {
+        position: relative;
+        z-index: 1;
+        max-width: 880px;
+        margin: 0 auto;
+        padding: 56px 32px 100px;
+    }
+
+    /* Header */
+    header {
+        margin-bottom: 52px;
+        animation: fadeUp 0.7s ease both;
+    }
+
+    .logo-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 28px;
+    }
+
+    .logo-icon {
+        width: 44px; height: 44px;
+        background: var(--sun);
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 22px;
+        box-shadow: 0 4px 16px rgba(245,166,35,0.35);
+    }
+
+    .logo-text {
+        font-size: 13px; font-weight: 600;
+        color: var(--leaf);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    h1 {
+        font-size: clamp(2.2rem, 5.5vw, 3.6rem);
+        font-weight: 800;
+        line-height: 1.08;
+        letter-spacing: -0.03em;
+        color: var(--earth);
+    }
+
+    h1 em { font-style: normal; color: var(--green); }
+
+    .subtitle {
+        margin-top: 14px;
+        font-size: 15px; color: var(--muted); font-weight: 300;
+        max-width: 420px; line-height: 1.6;
+    }
+
+    /* Stats */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 40px;
+        animation: fadeUp 0.7s 0.1s ease both;
+    }
+
+    .stat-card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px 24px;
+        position: relative; overflow: hidden;
+        box-shadow: 0 2px 16px rgba(45,90,39,0.05);
+    }
+
+    .stat-card::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0; right: 0; height: 3px;
+        background: linear-gradient(90deg, var(--green), var(--sun));
+    }
+
+    .stat-label {
+        font-size: 11px; letter-spacing: 0.14em;
+        text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+    }
+
+    .stat-value {
+        font-family: 'Space Mono', monospace;
+        font-size: 1.5rem; font-weight: 700; color: var(--earth);
+    }
+
+    .stat-icon {
+        position: absolute; top: 18px; right: 18px;
+        font-size: 22px; opacity: 0.18;
+    }
+
+    /* Message */
+    .message {
+        display: flex; align-items: center; gap: 10px;
+        background: var(--green-dim);
+        border: 1px solid var(--green);
+        border-radius: 8px;
+        padding: 13px 18px;
+        font-size: 13px; color: var(--leaf);
+        margin-bottom: 32px;
+        animation: fadeUp 0.5s ease both;
+    }
+
+    .message::before { content: '🌿'; font-size: 16px; }
+
+    /* Upload card */
+    .upload-card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 36px;
+        margin-bottom: 40px;
+        animation: fadeUp 0.7s 0.15s ease both;
+        box-shadow: 0 4px 32px rgba(45,90,39,0.07);
+        position: relative; overflow: hidden;
+    }
+
+    .upload-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; height: 3px;
+        background: linear-gradient(90deg, var(--green), var(--sun), var(--green));
+    }
+
+    .section-label {
+        font-size: 11px; font-weight: 600;
+        letter-spacing: 0.16em; text-transform: uppercase;
+        color: var(--muted); margin-bottom: 22px;
+    }
+
+    .drop-zone {
+        border: 2px dashed var(--border);
+        border-radius: 10px;
+        padding: 44px 32px;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color 0.2s, background 0.2s;
+        margin-bottom: 18px;
+        position: relative;
+        background: #f7fdf8;
+    }
+
+    .drop-zone:hover, .drop-zone.drag-over {
+        border-color: var(--green);
+        background: var(--green-dim);
+    }
+
+    .drop-zone input[type="file"] {
+        position: absolute; inset: 0; opacity: 0;
+        cursor: pointer; width: 100%; height: 100%;
+    }
+
+    .drop-icon {
+        font-size: 40px; display: block; margin-bottom: 14px;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50%       { transform: translateY(-6px); }
+    }
+
+    .drop-label { font-size: 14px; color: var(--muted); line-height: 1.7; }
+    .drop-label strong { color: var(--green); font-weight: 600; }
+
+    #file-name {
+        font-family: 'Space Mono', monospace;
+        font-size: 11px; color: var(--green);
+        text-align: center; min-height: 18px;
+        margin-top: 8px; letter-spacing: 0.04em;
+    }
+
+    .submit-btn {
+        width: 100%; padding: 17px;
+        background: linear-gradient(135deg, var(--leaf) 0%, var(--green) 100%);
+        color: #fff; border: none; border-radius: 10px;
+        font-family: 'Outfit', sans-serif;
+        font-size: 15px; font-weight: 600; letter-spacing: 0.04em;
+        cursor: pointer;
+        transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+        box-shadow: 0 6px 24px rgba(45,90,39,0.22);
+        margin-top: 4px;
+    }
+
+    .submit-btn:hover {
+        opacity: 0.92; transform: translateY(-2px);
+        box-shadow: 0 10px 32px rgba(45,90,39,0.28);
+    }
+
+    .submit-btn:active { transform: translateY(0); }
+
+    /* Divider */
+    .divider {
+        display: flex; align-items: center; gap: 16px;
+        margin: 40px 0;
+        font-size: 11px; letter-spacing: 0.14em;
+        text-transform: uppercase; color: var(--muted);
+    }
+
+    .divider::before, .divider::after {
+        content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    /* Results */
+    .results { animation: fadeUp 0.7s 0.2s ease both; }
+
+    .results-header {
+        display: flex; align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+    }
+
+    .results-header h2 {
+        font-size: 1.4rem; font-weight: 700;
+        letter-spacing: -0.02em; color: var(--earth);
+    }
+
+    .total-pill {
+        background: var(--sun-light);
+        border: 1px solid #f5d07a;
+        border-radius: 100px;
+        padding: 6px 18px;
+        font-family: 'Space Mono', monospace;
+        font-size: 13px; font-weight: 700; color: #8a5e00;
+        display: flex; align-items: center; gap: 8px;
+    }
+
+    .total-pill::before { content: '☀️'; }
+
+    /* Table */
+    .table-wrap {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: var(--radius); overflow: hidden;
+        box-shadow: 0 4px 24px rgba(45,90,39,0.06);
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { background: #f2faf3; }
+
+    th {
+        padding: 13px 20px; text-align: left;
+        font-size: 10px; letter-spacing: 0.18em;
+        text-transform: uppercase; color: var(--muted);
+        font-weight: 600; border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr { border-bottom: 1px solid #edf7ee; transition: background 0.15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f7fdf8; }
+
+    td { padding: 13px 20px; font-size: 14px; color: var(--text); }
+
+    td:last-child {
+        text-align: right;
+        font-family: 'Space Mono', monospace;
+        font-size: 13px; color: var(--leaf); font-weight: 700;
+    }
+
+    /* Empty state */
+    .empty-state {
+        background: var(--panel);
+        border: 2px dashed var(--border);
+        border-radius: var(--radius);
+        text-align: center; padding: 72px 32px; color: var(--muted);
+    }
+
+    .empty-icon { font-size: 48px; display: block; margin-bottom: 16px; opacity: 0.5; }
+    .empty-state p { font-size: 14px; line-height: 1.8; }
+
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 600px) {
+        .stats-row { grid-template-columns: 1fr; }
+        .page { padding: 36px 18px 80px; }
+    }
+  </style>
+</head>
+<body>
+<div class="sun-orb"></div>
+<div class="panel-deco"></div>
+
+<div class="page">
+
+  <header>
+    <div class="logo-row">
+      <div class="logo-icon">☀️</div>
+      <span class="logo-text">SolarSave · Energy Analytics</span>
+    </div>
+    <h1>Your <em>Green</em><br>Energy Savings</h1>
+    <p class="subtitle">Upload your statement to track solar returns and analyse your clean energy cashflow.</p>
+  </header>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <p class="stat-label">CO₂ Offset</p>
+      <p class="stat-value">4.2 t</p>
+      <span class="stat-icon">🌿</span>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">kWh Generated</p>
+      <p class="stat-value">6,840</p>
+      <span class="stat-icon">⚡</span>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Panel Efficiency</p>
+      <p class="stat-value">94.3%</p>
+      <span class="stat-icon">🔆</span>
+    </div>
+  </div>
+
+  <div class="message" th:if="${message}">
+    <span th:text="${message}"></span>
+  </div>
+
+  <div class="upload-card">
+    <p class="section-label">Import Statement</p>
+    <form method="POST" action="/green" enctype="multipart/form-data" id="upload-form">
+      <div class="drop-zone" id="drop-zone">
+        <input type="file" name="file" required id="file-input" accept=".xlsx,.xls,.csv"/>
+        <span class="drop-icon">🌤️</span>
+        <p class="drop-label">
+          Drop your bank export here or <strong>browse files</strong><br>
+          <span style="font-size:12px; opacity:0.7;">.xlsx · .xls · .csv</span>
+        </p>
+      </div>
+      <p id="file-name"></p>
+      <button type="submit" class="submit-btn">⚡ Analyse Savings</button>
+    </form>
+  </div>
+
+  <div class="divider">transactions</div>
+
+  <div class="results">
+    <div class="results-header">
+      <h2>Transaction Records</h2>
+      <div class="total-pill" th:if="${total}" th:text="${total}"></div>
+      <div class="total-pill" th:if="${usTotal}" th:text="${usTotal}"></div>
+    </div>
+
+    <div class="table-wrap" th:if="${not #lists.isEmpty(reports)}">
+      <table>
+        <thead>
+        <tr>
+          <th>Date</th>
+          <th style="text-align:center">Amount</th>
+          <th style="text-align:center">Exchange Rate</th>
+          <th style="text-align:center">USD Value</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="report : ${reports}">
+          <td th:text="${report.date}">—</td>
+          <td th:text="${report.amount}" style="text-align:center">—</td>
+          <td th:text="${report.exchangeRate}" style="text-align:center">—</td>
+          <td th:text="${report.usdValue}" style="text-align:center">—</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="empty-state" th:if="${#lists.isEmpty(reports)}">
+      <span class="empty-icon">🌱</span>
+      <p>No records yet.<br>Upload a statement above to see your solar savings.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const input = document.getElementById('file-input');
+  const label = document.getElementById('file-name');
+  const zone  = document.getElementById('drop-zone');
+
+  input.addEventListener('change', () => {
+      label.textContent = input.files[0]?.name ?? '';
+  });
+
+  ['dragover','dragenter'].forEach(evt => zone.addEventListener(evt, e => {
+      e.preventDefault(); zone.classList.add('drag-over');
+  }));
+
+  ['dragleave','dragend'].forEach(evt => zone.addEventListener(evt, () => {
+      zone.classList.remove('drag-over');
+  }));
+
+  zone.addEventListener('drop', e => {
+      e.preventDefault(); zone.classList.remove('drag-over');
+      if (e.dataTransfer.files.length) {
+          input.files = e.dataTransfer.files;
+          label.textContent = e.dataTransfer.files[0].name;
+      }
+  });
+</script>
+</body>
+</html>

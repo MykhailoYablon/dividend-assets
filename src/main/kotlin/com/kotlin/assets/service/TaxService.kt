@@ -7,9 +7,11 @@ import com.kotlin.assets.entity.TotalTaxReport
 import com.kotlin.assets.mapper.TaxReportMapper
 import com.kotlin.assets.parser.IBFilesParser
 import com.kotlin.assets.repository.TotalTaxReportRepository
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
+import org.springframework.web.server.ResponseStatusException
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -21,9 +23,9 @@ class TaxService(
     val taxReportMapper: TaxReportMapper
 ) {
 
-    val SCALE = 2
-    val ROUNDING_MODE: RoundingMode = RoundingMode.HALF_DOWN
-    val EXPORT_DIR = "exports"
+    val scale = 2
+    val roundingMode: RoundingMode = RoundingMode.HALF_DOWN
+    val exportDir = "exports"
 
     @Transactional
     fun calculateDividendTax(year: Short, file: MultipartFile, isMilitary: Boolean): TotalTaxReportDto {
@@ -45,15 +47,15 @@ class TaxService(
             val dividendDate = dividend.date
             val exchangeRate = rateCache[dividendDate] ?: BigDecimal.ZERO
             val uaBrutto = exchangeRate.multiply(dividendAmount)
-                .setScale(SCALE, ROUNDING_MODE)
+                .setScale(scale, roundingMode)
 
             totalAmount += dividendAmount
             totalUaBrutto += uaBrutto
 
             val tax9: BigDecimal = uaBrutto.multiply(BigDecimal.valueOf(0.09))
-                .setScale(SCALE, ROUNDING_MODE)
+                .setScale(scale, roundingMode)
             val militaryTax5 = uaBrutto.multiply(BigDecimal.valueOf(0.05))
-                .setScale(SCALE, ROUNDING_MODE)
+                .setScale(scale, roundingMode)
             //if you are in military then don't
             val taxSum: BigDecimal = if (isMilitary) tax9 else tax9.add(militaryTax5)
 
@@ -77,9 +79,11 @@ class TaxService(
         var totalTaxSum = round(totalTax9.add(totalMilitaryTax5))
 
         val totalTaxReport =
-            totalTaxReportRepository.findByYear(year) ?: TotalTaxReport(
-                year = year, status = ReportStatus.CALCULATED
-            )
+            totalTaxReportRepository.findByYear(year).orElseGet {
+                TotalTaxReport(
+                    year = year, status = ReportStatus.CALCULATED
+                )
+            }
 
         totalTaxReport.apply {
             this.totalUaBrutto = totalUaBrutto
@@ -96,5 +100,10 @@ class TaxService(
 
     private fun round(value: BigDecimal): BigDecimal {
         return value.setScale(2, RoundingMode.HALF_UP)
+    }
+
+    fun generateXmlTaxReport(year: Short) {
+        val totalTaxReport = totalTaxReportRepository.findByYear(year)
+            .orElseThrow { throw ResponseStatusException(HttpStatus.NOT_FOUND) }
     }
 }

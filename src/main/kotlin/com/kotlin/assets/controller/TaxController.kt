@@ -23,4 +23,9 @@ class TaxController(val taxService: TaxService) {
     ): TotalTaxReportDto {
         return taxService.calculateDividendTax(year, file, isMilitary)
     }
+
+    @GetMapping("/reports")
+    fun generateXmlReports(@RequestParam year: Short) {
+        taxService.generateXmlTaxReport(year)
+    }
 }

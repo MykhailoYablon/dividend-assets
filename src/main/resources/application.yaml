@@ -1,6 +1,10 @@
 spring:
   application:
     name: assets
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 12MB
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://127.0.0.1:5432/mydatabase}
     username: ${DATABASE_USERNAME:myuser}

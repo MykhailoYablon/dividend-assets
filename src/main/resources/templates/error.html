@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Error – SolarSave</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/solar.css}"/>
+  <style>
+    body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 24px;
+    }
+
+    .error-card {
+        position: relative;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 56px 48px 48px;
+        max-width: 480px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 8px 48px rgba(45,90,39,0.10);
+        overflow: hidden;
+        animation: fadeUp 0.6s ease both;
+    }
+
+    /* Top accent */
+    .error-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; height: 4px;
+        background: linear-gradient(90deg, #c0392b, var(--sun), #c0392b);
+    }
+
+    .error-icon {
+        font-size: 56px;
+        display: block;
+        margin-bottom: 20px;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .error-status {
+        font-family: 'Space Mono', monospace;
+        font-size: 11px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 12px;
+    }
+
+    .error-status span {
+        color: #c0392b;
+        font-weight: 700;
+    }
+
+    h1 {
+        font-size: 1.9rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        color: var(--earth);
+        margin-bottom: 14px;
+        line-height: 1.1;
+    }
+
+    .error-message {
+        font-size: 14px;
+        color: var(--muted);
+        line-height: 1.7;
+        font-weight: 300;
+        margin-bottom: 36px;
+        padding: 0 8px;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 13px 28px;
+        background: linear-gradient(135deg, var(--leaf) 0%, var(--green) 100%);
+        color: #fff;
+        border: none;
+        border-radius: 100px;
+        font-family: 'Outfit', sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+        box-shadow: 0 6px 20px rgba(45,90,39,0.22);
+    }
+
+    .back-btn:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 28px rgba(45,90,39,0.28);
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50%       { transform: translateY(-8px); }
+    }
+
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(24px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="sun-orb"></div>
+<div class="panel-deco"></div>
+
+<div class="error-card">
+  <span class="error-icon">⚡</span>
+
+  <p class="error-status">
+    Status <span th:text="${status}">500</span>
+  </p>
+
+  <h1 th:text="${error}">Something went wrong</h1>
+
+  <p class="error-message" th:text="${message}">
+    An unexpected error has occurred. Please try again later.
+  </p>
+
+  <a class="back-btn" th:href="@{/}">
+    ☀️ Back to Dashboard
+  </a>
+</div>
+
+</body>
+</html>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
   <title>Solar Savings</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -87,7 +88,7 @@
 
   <div class="upload-card">
     <p class="section-label">Import Statement</p>
-    <form method="POST" action="/green" enctype="multipart/form-data" id="upload-form">
+    <form method="POST" th:action="@{/green}" enctype="multipart/form-data" id="upload-form">
       <div class="drop-zone" id="drop-zone">
         <input type="file" name="file" required id="file-input" accept=".xlsx,.xls,.csv"/>
         <span class="drop-icon">🌤️</span>

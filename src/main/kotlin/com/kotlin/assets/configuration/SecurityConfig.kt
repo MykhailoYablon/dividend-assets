@@ -25,6 +25,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.csrf.CsrfToken
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler
+import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler
 import org.springframework.web.filter.OncePerRequestFilter
 
 @Configuration
@@ -68,11 +69,7 @@ class SecurityConfig(
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
             .authenticationProvider(authenticationProvider())
-            .csrf { csrf ->
-                csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                csrf.csrfTokenRequestHandler(CsrfTokenRequestAttributeHandler())
-                csrf.ignoringRequestMatchers("/logout")
-            }
+            .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth.requestMatchers("/login", "/error", "/css/**", "/js/**").permitAll()
                     .anyRequest().authenticated()

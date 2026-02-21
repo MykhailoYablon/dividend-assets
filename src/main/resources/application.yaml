@@ -1,6 +1,9 @@
 spring:
   application:
     name: assets
+  security:
+    csrf:
+      request-handler: XOR
   servlet:
     multipart:
       max-file-size: 10MB

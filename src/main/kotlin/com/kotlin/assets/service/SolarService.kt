@@ -54,10 +54,11 @@ class SolarService(val exchangeRateService: ExchangeRateService,
             solarRepository.saveAll(reports)
 
             model.addAttribute("reports", reports)
-            model.addAttribute("total", "Total Amount: $total")
-            model.addAttribute("usTotal", "Total US Amount: $usTotal")
+            model.addAttribute("total", "Total Amount: $total ₴")
+            model.addAttribute("usTotal", "Total US Amount: $usTotal $")
         } catch (e: Exception) {
             logger.info("Error {e}", e)
+            throw IllegalArgumentException("Invalid or corrupted xlsx file")
         }
     }
 

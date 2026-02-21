@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>File Upload</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;800&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0c0c0f;
+            --surface: #141418;
+            --border: #232329;
+            --accent: #c8f542;
+            --accent-dim: rgba(200, 245, 66, 0.12);
+            --text: #f0f0f0;
+            --muted: #666;
+            --danger: #ff4f4f;
+        }
+
+        body {
+            font-family: 'DM Mono', monospace;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        /* Grain overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0.4;
+        }
+
+        .page {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 60px 32px 100px;
+        }
+
+        /* Header */
+        header {
+            margin-bottom: 64px;
+            animation: fadeUp 0.6s ease both;
+        }
+
+        .eyebrow {
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.2em;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2.4rem, 6vw, 4rem);
+            font-weight: 800;
+            line-height: 1.05;
+            letter-spacing: -0.03em;
+            color: var(--text);
+        }
+
+        h1 span {
+            color: var(--accent);
+        }
+
+        /* Message banner */
+        .message {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--accent-dim);
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            padding: 14px 20px;
+            font-size: 13px;
+            color: var(--accent);
+            margin-bottom: 36px;
+            animation: fadeUp 0.5s ease both;
+        }
+
+        .message::before {
+            content: '✓';
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /* Upload card */
+        .upload-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 56px;
+            animation: fadeUp 0.6s 0.1s ease both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), transparent);
+        }
+
+        .upload-card h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--muted);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 28px;
+        }
+
+        .drop-zone {
+            border: 1.5px dashed var(--border);
+            border-radius: 8px;
+            padding: 40px 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .drop-zone:hover {
+            border-color: var(--accent);
+            background: var(--accent-dim);
+        }
+
+        .drop-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .drop-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .drop-label {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .drop-label strong {
+            color: var(--accent);
+            font-weight: 400;
+        }
+
+        #file-name {
+            font-size: 12px;
+            color: var(--accent);
+            margin-top: 10px;
+            min-height: 18px;
+            text-align: center;
+            letter-spacing: 0.05em;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent);
+            color: #0c0c0f;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Syne', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s;
+        }
+
+        .submit-btn:hover {
+            opacity: 0.88;
+            transform: translateY(-1px);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Results section */
+        .results {
+            animation: fadeUp 0.6s 0.2s ease both;
+        }
+
+        .results-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .results-header h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .total-badge {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .total-badge strong {
+            font-family: 'Syne', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--accent);
+            margin-left: 8px;
+        }
+
+        /* Table */
+        .table-wrap {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead tr {
+            background: #18181d;
+        }
+
+        th {
+            padding: 14px 20px;
+            text-align: left;
+            font-size: 10px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--muted);
+            font-weight: 400;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+        }
+
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: rgba(255,255,255,0.02);
+        }
+
+        td {
+            padding: 14px 20px;
+            font-size: 13px;
+            color: var(--text);
+        }
+
+        td:last-child {
+            text-align: right;
+            font-family: 'DM Mono', monospace;
+            color: var(--accent);
+            letter-spacing: 0.03em;
+        }
+
+        /* Row index */
+        tbody tr td:first-child {
+            color: var(--muted);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 64px 32px;
+            color: var(--muted);
+            font-size: 13px;
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+            line-height: 2;
+        }
+
+        .empty-state .empty-icon {
+            font-size: 36px;
+            display: block;
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 48px 0;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <header>
+        <p class="eyebrow">Finance / Import</p>
+        <h1>Upload <span>&amp;</span><br>Analyse</h1>
+    </header>
+
+    <div class="message" th:if="${message}">
+        <span th:text="${message}"></span>
+    </div>
+
+    <!-- Upload Form -->
+    <div class="upload-card">
+        <h2>Select file</h2>
+        <form method="POST" action="/green" enctype="multipart/form-data" id="upload-form">
+            <div class="drop-zone" id="drop-zone">
+                <input type="file" name="file" required id="file-input" accept=".xlsx,.xls,.csv"/>
+                <span class="drop-icon">📂</span>
+                <p class="drop-label">
+                    Drag &amp; drop your file here or <strong>browse</strong><br>
+                    <span style="font-size:11px; opacity:0.6;">Supported: .xlsx, .xls, .csv</span>
+                </p>
+            </div>
+            <p id="file-name"></p>
+            <button type="submit" class="submit-btn">Process File →</button>
+        </form>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Results -->
+    <div class="results">
+        <div class="results-header">
+            <h2>Records</h2>
+            <div class="total-badge" th:if="${total}">
+                Total<strong th:text="${total}"></strong>
+            </div>
+            <div class="total-badge" th:if="${usTotal}">
+                Total<strong th:text="${usTotal}"></strong>
+            </div>
+        </div>
+
+        <div class="table-wrap" th:if="${not #lists.isEmpty(reports)}">
+            <table>
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th style="text-align:center">Amount</th>
+                    <th style="text-align:center">Exchange Rate</th>
+                    <th style="text-align:center">USD Value</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="report : ${reports}">
+                    <td th:text="${report.date}">—</td>
+                    <td th:text="${report.amount}">—</td>
+                    <td th:text="${report.exchangeRate}">—</td>
+                    <td th:text="${report.usdValue}">—</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="empty-state" th:if="${#lists.isEmpty(reports)}">
+            <span class="empty-icon">🗂</span>
+            No records yet.<br>Upload a file above to get started.
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const input = document.getElementById('file-input');
+    const label = document.getElementById('file-name');
+    const zone  = document.getElementById('drop-zone');
+
+    input.addEventListener('change', () => {
+        label.textContent = input.files[0]?.name ?? '';
+    });
+
+    zone.addEventListener('dragover', e => {
+        e.preventDefault();
+        zone.style.borderColor = 'var(--accent)';
+        zone.style.background  = 'var(--accent-dim)';
+    });
+
+    zone.addEventListener('dragleave', () => {
+        zone.style.borderColor = '';
+        zone.style.background  = '';
+    });
+
+    zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.style.borderColor = '';
+        zone.style.background  = '';
+        if (e.dataTransfer.files.length) {
+            input.files = e.dataTransfer.files;
+            label.textContent = e.dataTransfer.files[0].name;
+        }
+    });
+</script>
+</body>
+</html>

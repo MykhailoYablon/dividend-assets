@@ -25,14 +25,20 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
+	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("tools.jackson.module:jackson-module-kotlin")
 	runtimeOnly("org.postgresql:postgresql")
 
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-scalar:2.8.15")
-	implementation("com.opencsv:opencsv:5.12.0")
-	implementation("org.mapstruct:mapstruct:1.6.3")
 
+	implementation("com.opencsv:opencsv:5.12.0")
+
+	implementation("org.jetbrains.kotlinx:dataframe-excel:0.13.1")
+
+	implementation("org.mapstruct:mapstruct:1.6.3")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-validation-test")
@@ -41,6 +47,8 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
 	kapt("org.mapstruct:mapstruct-processor:1.6.3")
+
+	implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
 }
 
 kotlin {

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <title>Solar Savings – Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/login.css}"/>
+</head>
+<body>
+
+<!--
+  Show this card only when the user is NOT authenticated.
+  Requires the Thymeleaf Spring Security extras dependency:
+    implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity6")
+-->
+<div class="login-card" sec:authorize="!isAuthenticated()">
+
+  <div class="logo-row">
+    <div class="logo-icon">☀️</div>
+    <span class="logo-text">SolarSave<br>Energy Analytics</span>
+  </div>
+
+  <h2>Welcome back</h2>
+  <p class="tagline">Sign in to view your clean energy savings.</p>
+
+  <!-- Spring Security sets ?error on failed login -->
+  <div class="error-banner" th:if="${param.error}">
+    Invalid username or password. Please try again.
+  </div>
+
+  <form th:action="@{/login}" method="post">
+
+    <!-- CSRF token is injected automatically by Thymeleaf + Spring Security -->
+
+    <div class="field">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username"
+             placeholder="your@email.com" autocomplete="username" required/>
+    </div>
+
+    <div class="field">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password"
+             placeholder="••••••••" autocomplete="current-password" required/>
+    </div>
+
+    <button type="submit" class="submit-btn">⚡ Sign In</button>
+  </form>
+
+  <p class="card-footer">
+    Don't have an account? <a href="/register">Get started →</a>
+  </p>
+</div>
+
+</body>
+</html>

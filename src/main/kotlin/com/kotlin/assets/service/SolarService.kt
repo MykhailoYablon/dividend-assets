@@ -1,6 +1,7 @@
 package com.kotlin.assets.service
 
-import com.kotlin.assets.dto.green.GreenReturnReport
+import com.kotlin.assets.entity.SolarReport
+import com.kotlin.assets.repository.SolarRepository
 import mu.KotlinLogging
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.filter
@@ -15,7 +16,8 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @Service
-class GreenService(val exchangeRateService: ExchangeRateService) {
+class SolarService(val exchangeRateService: ExchangeRateService,
+    val solarRepository: SolarRepository) {
 
     private val logger = KotlinLogging.logger {}
 
@@ -24,16 +26,15 @@ class GreenService(val exchangeRateService: ExchangeRateService) {
             val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss")
             var total = BigDecimal.ZERO
             var usTotal = BigDecimal.ZERO
+            //Read file
             val reports = DataFrame.readExcel(file.inputStream, skipRows = 1)
                 .filter { row ->
                     val dateStr = row["Дата"].toString().trim()
                     dateStr.matches(Regex("""\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}:\d{2}"""))
                 }
                 .map { row ->
-                    val date = LocalDateTime.parse(row[0].toString().trim(), formatter)
-
-                    val exchangeRate = exchangeRateService.getRateForDate(date.toLocalDate())
-
+                    val date = LocalDateTime.parse(row[0].toString().trim(), formatter).toLocalDate()
+                    val exchangeRate = exchangeRateService.getRateForDate(date)
                     val amount = row[4].toString().trim()
                         .replace(" ", "")
                         .replace(",", ".")
@@ -41,15 +42,16 @@ class GreenService(val exchangeRateService: ExchangeRateService) {
                     total += amount
                     val usdValue = amount.divide(exchangeRate, 2, RoundingMode.HALF_UP)
                     usTotal += usdValue
-                    GreenReturnReport(
+                    SolarReport(
                         year = date.year,
                         date = date,
                         amount = amount,
                         exchangeRate = exchangeRate,
                         usdValue = usdValue,
                     )
-
                 }
+
+            solarRepository.saveAll(reports)
 
             model.addAttribute("reports", reports)
             model.addAttribute("total", "Total Amount: $total")
@@ -57,5 +59,10 @@ class GreenService(val exchangeRateService: ExchangeRateService) {
         } catch (e: Exception) {
             logger.info("Error {e}", e)
         }
+    }
+
+    fun getAllReports(model: Model) {
+        val reports = solarRepository.findAll()
+        model.addAttribute("reports", reports)
     }
 }

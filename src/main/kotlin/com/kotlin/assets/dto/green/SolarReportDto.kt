@@ -1,15 +1,12 @@
 package com.kotlin.assets.dto.green
 
-import com.opencsv.bean.CsvBindByPosition
 import java.math.BigDecimal
-import java.time.LocalDateTime
+import java.time.LocalDate
 
-data class GreenReturnReport(
+data class SolarReportDto(
 
     var year: Int = 0,
-    @CsvBindByPosition(position = 1)
-    var date: LocalDateTime,
-    @CsvBindByPosition(position = 5)
+    var date: LocalDate,
     var amount: BigDecimal = BigDecimal.ZERO,
 
     var exchangeRate: BigDecimal = BigDecimal.ZERO,

@@ -1,6 +1,6 @@
 package com.kotlin.assets.controller
 
-import com.kotlin.assets.service.GreenService
+import com.kotlin.assets.service.SolarService
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
@@ -10,11 +10,11 @@ import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.multipart.MultipartFile
 
 @Controller
-class GreenEnergyController(val greenService: GreenService) {
+class SolarEnergyController(val solarService: SolarService) {
 
     @GetMapping("/")
-    fun listFiles(model: Model): String {
-//        model.addAttribute("files", uploadedFiles)
+    fun getAllReports(model: Model): String {
+        solarService.getAllReports(model)
         return "solar"
     }
 
@@ -27,7 +27,7 @@ class GreenEnergyController(val greenService: GreenService) {
     ): String {
         if (!file.isEmpty) {
             try {
-                greenService.calculateGreenReturn(file = file, model = model)
+                solarService.calculateGreenReturn(file = file, model = model)
                 model.addAttribute("message", "File uploaded successfully: ${file.originalFilename}")
 
             } catch (e: Exception) {

@@ -160,7 +160,7 @@ class SolarServiceTest {
 
     // put a real test.xlsx in src/test/resources/
     fun buildXlsxInputStream(): InputStream {
-        return javaClass.classLoader.getResourceAsStream("Test.xlsx")
+        return javaClass.classLoader.getResourceAsStream("Test(1).xlsx")
             ?: error("test.xlsx not found in resources")
     }
 }

@@ -1,5 +1,8 @@
 package com.kotlin.assets.service
 
+import com.kotlin.assets.dto.MonthSummary
+import com.kotlin.assets.dto.Statistics
+import com.kotlin.assets.dto.YearSummary
 import com.kotlin.assets.entity.SolarFileReport
 import com.kotlin.assets.entity.SolarReport
 import com.kotlin.assets.repository.SolarFileReportRepository
@@ -89,5 +92,39 @@ class SolarService(
     fun getAllReports(model: Model) {
         val reports = solarRepository.findAll()
         model.addAttribute("reports", reports)
+    }
+
+    fun buildStatistics(): Statistics {
+        val records = solarRepository.findAll()
+        val byYear = records
+            .groupBy { it.date.year }
+            .map { (year, yearRecords) ->
+                val byMonth = yearRecords
+                    .groupBy { it.date.month }
+                    .map { (month, monthRecords) ->
+                        MonthSummary(
+                            month = month,
+                            total = monthRecords.sumOf { it.amount },
+                            usdTotal = monthRecords.sumOf { it.usdValue },
+                            count = monthRecords.size
+                        )
+                    }
+                    .sortedBy { it.month }
+
+                YearSummary(
+                    year = year,
+                    total = yearRecords.sumOf { it.amount },
+                    usdTotal = yearRecords.sumOf { it.usdValue },
+                    count = yearRecords.size,
+                    byMonth = byMonth
+                )
+            }
+            .sortedByDescending { it.year }
+
+        return Statistics(
+            grandTotal = records.sumOf { it.amount },
+            grandUsdTotal = records.sumOf { it.usdValue },
+            byYear     = byYear
+        )
     }
 }

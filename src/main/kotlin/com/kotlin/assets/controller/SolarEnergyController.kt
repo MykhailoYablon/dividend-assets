@@ -49,4 +49,11 @@ class SolarEnergyController(
         }
         return "solar"
     }
+
+    @GetMapping("/statistics")
+    fun statistics(model: Model): String {
+        val statistics = solarService.buildStatistics()
+            model.addAttribute("stats", statistics)
+        return "statistics"
+    }
 }

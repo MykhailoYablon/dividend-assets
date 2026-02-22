@@ -1,6 +1,8 @@
 package com.kotlin.assets.service
 
+import com.kotlin.assets.entity.SolarFileReport
 import com.kotlin.assets.entity.SolarReport
+import com.kotlin.assets.repository.SolarFileReportRepository
 import com.kotlin.assets.repository.SolarRepository
 import mu.KotlinLogging
 import org.jetbrains.kotlinx.dataframe.DataFrame
@@ -8,6 +10,7 @@ import org.jetbrains.kotlinx.dataframe.api.filter
 import org.jetbrains.kotlinx.dataframe.api.map
 import org.jetbrains.kotlinx.dataframe.io.readExcel
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.ui.Model
 import org.springframework.web.multipart.MultipartFile
 import java.math.BigDecimal
@@ -16,13 +19,23 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @Service
-class SolarService(val exchangeRateService: ExchangeRateService,
-    val solarRepository: SolarRepository) {
+class SolarService(
+    val exchangeRateService: ExchangeRateService,
+    val solarRepository: SolarRepository,
+    val solarFileReportRepository: SolarFileReportRepository
+) {
 
     private val logger = KotlinLogging.logger {}
 
-    fun calculateGreenReturn(file: MultipartFile, model: Model) {
+    @Transactional
+    fun calculateGreenReturn(file: MultipartFile, model: Model, fileName: String, userId: Long) {
         try {
+
+            // Always create a new file report entry as an audit record
+            val fileReport = solarFileReportRepository.save(
+                SolarFileReport(fileName = fileName, userId = userId)
+            )
+
             val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss")
             var total = BigDecimal.ZERO
             var usTotal = BigDecimal.ZERO
@@ -42,7 +55,19 @@ class SolarService(val exchangeRateService: ExchangeRateService,
                     total += amount
                     val usdValue = amount.divide(exchangeRate, 2, RoundingMode.HALF_UP)
                     usTotal += usdValue
+
+                    val reportId =
+                        solarRepository.upsert(
+                            date = date,
+                            amount = amount,
+                            solarFileReportId = fileReport.id!!,
+                            year = date.year,
+                            exchangeRate = exchangeRate,
+                            usdValue = usdValue
+                        )
+
                     SolarReport(
+                        id = reportId,
                         year = date.year,
                         date = date,
                         amount = amount,
@@ -51,13 +76,13 @@ class SolarService(val exchangeRateService: ExchangeRateService,
                     )
                 }
 
-            solarRepository.saveAll(reports)
 
             model.addAttribute("reports", reports)
-            model.addAttribute("total", "Total Amount: $total")
-            model.addAttribute("usTotal", "Total US Amount: $usTotal")
+            model.addAttribute("total", "Total Amount: $total ₴")
+            model.addAttribute("usTotal", "Total US Amount: $usTotal $")
         } catch (e: Exception) {
             logger.info("Error {e}", e)
+            throw IllegalArgumentException("Invalid or corrupted xlsx file")
         }
     }
 

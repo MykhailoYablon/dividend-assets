@@ -40,6 +40,14 @@ dependencies {
 
 	implementation("org.mapstruct:mapstruct:1.6.3")
 
+	//Security
+	implementation("org.springframework.boot:spring-boot-starter-security")
+	implementation("io.jsonwebtoken:jjwt-api:0.12.3")
+	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.3")
+	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.3")
+	implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity6")
+	implementation("org.apache.tika:tika-core:2.9.1")
+
 	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-validation-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")

@@ -22,13 +22,20 @@ class JwtUtil {
         Keys.hmacShaKeyFor(Base64.decode(secret))
     }
 
-    fun generateToken(username: String): String {
+    fun generateToken(username: String, userId: Long): String {
         return Jwts.builder()
             .subject(username)
+            .claim("userId", userId)
             .issuedAt(Date())
             .expiration(Date(System.currentTimeMillis() + expiration))
             .signWith(key)
             .compact()
+    }
+
+    fun extractUserId(token: String): Long? {
+        return runCatching {
+            getClaims(token).get("userId", Long::class.java)
+        }.getOrNull()
     }
 
     fun extractUsername(token: String): String? {

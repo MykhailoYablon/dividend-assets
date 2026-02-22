@@ -1,8 +1,10 @@
 package com.kotlin.assets.controller
 
+import com.kotlin.assets.dto.MyUserDetails
 import com.kotlin.assets.service.FileValidator
 import com.kotlin.assets.service.SolarService
 import org.springframework.http.MediaType
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.util.StringUtils
@@ -28,17 +30,18 @@ class SolarEnergyController(
         consumes = [MediaType.MULTIPART_FORM_DATA_VALUE]
     )
     fun calculateGreenReturn(
-        @RequestPart("file") file: MultipartFile, model: Model
+        @RequestPart("file") file: MultipartFile, model: Model,
+        @AuthenticationPrincipal user: MyUserDetails
     ): String {
         if (!file.isEmpty) {
             if (file.size > 10 * 1024 * 1024) {
                 throw IllegalArgumentException("File too large")
             }
             fileValidator.validate(file)
-            solarService.calculateGreenReturn(file = file, model = model)
-
             val safeFilename = StringUtils.cleanPath(file.originalFilename ?: "unknown")
                 .replace("..", "") // prevent path traversal
+
+            solarService.calculateGreenReturn(file = file, model = model, fileName = safeFilename, userId = user.getId())
 
             model.addAttribute("message", "File uploaded successfully: $safeFilename")
         } else {

@@ -1,6 +1,7 @@
 package com.kotlin.assets.controller
 
 import com.kotlin.assets.configuration.jwt.JwtUtil
+import com.kotlin.assets.repository.UserRepository
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.authentication.AuthenticationManager
@@ -14,6 +15,7 @@ import javax.naming.AuthenticationException
 @Controller
 class AuthController(
     private val authenticationManager: AuthenticationManager,
+    private val userRepository: UserRepository,
     private val jwtUtil: JwtUtil
 ) {
     @GetMapping("/login")
@@ -31,7 +33,8 @@ class AuthController(
             val authentication = authenticationManager.authenticate(
                 UsernamePasswordAuthenticationToken(username, password)
             )
-            val token = jwtUtil.generateToken(authentication.name)
+            val user = userRepository.findByUsername(authentication.name)!!
+            val token = jwtUtil.generateToken(user.username, user.id!!)
 
             val cookie = Cookie("jwt", token).apply {
                 isHttpOnly = true

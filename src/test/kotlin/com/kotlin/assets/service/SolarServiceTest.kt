@@ -1,12 +1,13 @@
 package com.kotlin.assets.service
 
 import com.kotlin.assets.entity.SolarFileReport
+import com.kotlin.assets.entity.SolarReport
 import com.kotlin.assets.repository.SolarFileReportRepository
 import com.kotlin.assets.repository.SolarRepository
-import org.jetbrains.kotlinx.dataframe.DataFrame
+import org.apache.poi.ss.usermodel.WorkbookFactory
+import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.kotlinx.dataframe.api.toDataFrame
 import org.jetbrains.kotlinx.dataframe.io.writeExcel
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentMatchers.argThat
@@ -14,14 +15,15 @@ import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.*
+import org.springframework.mock.web.MockMultipartFile
 import org.springframework.ui.Model
 import org.springframework.web.multipart.MultipartFile
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.InputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
+import java.time.Month
 import kotlin.test.Test
 
 @ExtendWith(MockitoExtension::class)
@@ -49,16 +51,22 @@ class SolarServiceTest {
     private val fileName = "test.xlsx"
     private val fileReport = SolarFileReport(id = 1L, fileName = fileName, userId = userId)
 
-    @BeforeEach
-    fun setup() {
-        whenever(solarFileReportRepository.save(any<SolarFileReport>())).thenReturn(fileReport)
-    }
+    // Test data helpers
+    private fun createReport(
+        date: LocalDate,
+        amount: BigDecimal,
+        usdValue: BigDecimal
+    ) = SolarReport(
+        date = date,
+        amount = amount,
+        usdValue = usdValue,
+        year = date.year
+    )
 
     @Test
     fun `should save file report with correct userId and fileName`() {
-        val inputStream = buildXlsxInputStream(
-        )
-        whenever(file.inputStream).thenReturn(inputStream)
+        val file = buildXlsxMultipartFile(listOf(listOf("01.01.2024 00:00:00", "", "", "", "1000,00")))
+        whenever(solarFileReportRepository.save(any<SolarFileReport>())).thenReturn(fileReport)
         whenever(exchangeRateService.getRateForDate(any())).thenReturn(BigDecimal("38.00"))
         whenever(solarRepository.upsert(any(), any(), any(), any(), any(), any())).thenReturn(1L)
 
@@ -71,9 +79,10 @@ class SolarServiceTest {
 
     @Test
     fun `should add reports to model`() {
-        val inputStream = buildXlsxInputStream(
+        val file = buildXlsxMultipartFile(
+            listOf(listOf("01.01.2024 00:00:00", "", "", "", "1000,00"))
         )
-        whenever(file.inputStream).thenReturn(inputStream)
+        whenever(solarFileReportRepository.save(any<SolarFileReport>())).thenReturn(fileReport)
         whenever(exchangeRateService.getRateForDate(any())).thenReturn(BigDecimal("38.00"))
         whenever(solarRepository.upsert(any(), any(), any(), any(), any(), any())).thenReturn(1L)
 
@@ -86,11 +95,11 @@ class SolarServiceTest {
 
     @Test
     fun `should calculate correct totals for single row`() {
-        val inputStream = buildXlsxInputStream()
+        val file = buildXlsxMultipartFile(listOf(listOf("01.01.2024 00:00:00", "", "", "", "1 000,00")))
         val exchangeRate = BigDecimal("40.00")
         val expectedUsdValue = BigDecimal("25.00") // 1000 / 40
 
-        whenever(file.inputStream).thenReturn(inputStream)
+        whenever(solarFileReportRepository.save(any<SolarFileReport>())).thenReturn(fileReport)
         whenever(exchangeRateService.getRateForDate(any())).thenReturn(exchangeRate)
         whenever(solarRepository.upsert(any(), any(), any(), any(), any(), any())).thenReturn(1L)
 
@@ -102,9 +111,13 @@ class SolarServiceTest {
 
     @Test
     fun `should skip rows with invalid date format`() {
-        val inputStream = buildXlsxInputStream(
+        val file = buildXlsxMultipartFile(
+            listOf(
+                listOf("invalid-date", "", "", "", "1000,00"),
+                listOf("01.01.2024 00:00:00", "", "", "", "500,00")
+            )
         )
-        whenever(file.inputStream).thenReturn(inputStream)
+        whenever(solarFileReportRepository.save(any<SolarFileReport>())).thenReturn(fileReport)
         whenever(exchangeRateService.getRateForDate(any())).thenReturn(BigDecimal("38.00"))
         whenever(solarRepository.upsert(any(), any(), any(), any(), any(), any())).thenReturn(1L)
 
@@ -121,9 +134,10 @@ class SolarServiceTest {
         val expectedRate = BigDecimal("38.00")
         val expectedUsd = expectedAmount.divide(expectedRate, 2, RoundingMode.HALF_UP)
 
-        val inputStream = buildXlsxInputStream(
+        val file = buildXlsxMultipartFile(
+            listOf(listOf("01.01.2024 00:00:00", "", "", "", "1000,00"))
         )
-        whenever(file.inputStream).thenReturn(inputStream)
+        whenever(solarFileReportRepository.save(any<SolarFileReport>())).thenReturn(fileReport)
         whenever(exchangeRateService.getRateForDate(expectedDate)).thenReturn(expectedRate)
         whenever(solarRepository.upsert(any(), any(), any(), any(), any(), any())).thenReturn(1L)
 
@@ -141,7 +155,6 @@ class SolarServiceTest {
 
     @Test
     fun `should throw IllegalArgumentException when file is corrupted`() {
-        whenever(file.inputStream).thenThrow(RuntimeException("corrupted"))
 
         assertThrows<IllegalArgumentException> {
             solarReportService.calculateGreenReturn(file, model, fileName, userId)
@@ -150,17 +163,179 @@ class SolarServiceTest {
 
     @Test
     fun `should not call upsert when file has no valid rows`() {
-        val inputStream = buildXlsxInputStream()
-        whenever(file.inputStream).thenReturn(inputStream)
+        val file = buildXlsxMultipartFile(emptyList())
 
-        solarReportService.calculateGreenReturn(file, model, fileName, userId)
+        assertThrows<IllegalArgumentException> {
+            solarReportService.calculateGreenReturn(file, model, fileName, userId)
+        }
 
         verify(solarRepository, never()).upsert(any(), any(), any(), any(), any(), any())
     }
 
-    // put a real test.xlsx in src/test/resources/
-    fun buildXlsxInputStream(): InputStream {
-        return javaClass.classLoader.getResourceAsStream("Test(1).xlsx")
-            ?: error("test.xlsx not found in resources")
+    fun buildXlsxMultipartFile(rows: List<List<Any>>): MultipartFile {
+        val out = ByteArrayOutputStream()
+        val dataRows = rows.map { row ->
+            mapOf(
+                "Дата" to row.getOrElse(0) { "" }.toString(),
+                "Категорія" to row.getOrElse(1) { "" }.toString(),
+                "Картка" to row.getOrElse(2) { "" }.toString(),
+                "Опис операції" to row.getOrElse(3) { "" }.toString(),
+                "Сума в валюті картки" to row.getOrElse(4) { "" }.toString(),
+                "Валюта картки" to row.getOrElse(5) { "" }.toString(),
+            )
+        }
+
+        val df = dataRows.toDataFrame()
+
+        // Write the DataFrame to the OutputStream
+        val wb = WorkbookFactory.create(true)
+
+        df.writeExcel(outputStream = out, factory = wb)
+
+        // Create the MockMultipartFile
+        return MockMultipartFile(
+            "file", // Name of the request parameter on the server side (e.g., @RequestParam("file"))
+            "test.xlsx", // Original filename
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // Content type for .xlsx
+            ByteArrayInputStream(out.toByteArray()) // File content as InputStream
+        )
+    }
+
+    // ---- getAllReports ----
+
+    @Test
+    fun `getAllReports should add reports to model`() {
+        val reports = listOf(
+            createReport(LocalDate.of(2024, 1, 1), BigDecimal("1000"), BigDecimal("25")),
+            createReport(LocalDate.of(2024, 2, 1), BigDecimal("2000"), BigDecimal("50"))
+        )
+        whenever(solarRepository.findAll()).thenReturn(reports)
+
+        solarReportService.getAllReports(model)
+
+        verify(model).addAttribute("reports", reports)
+    }
+
+    @Test
+    fun `getAllReports should add empty list to model when no records`() {
+        whenever(solarRepository.findAll()).thenReturn(emptyList())
+
+        solarReportService.getAllReports(model)
+
+        verify(model).addAttribute("reports", emptyList<SolarReport>())
+    }
+
+    // ---- buildStatistics ----
+
+    @Test
+    fun `buildStatistics should return empty statistics when no records`() {
+        whenever(solarRepository.findAll()).thenReturn(emptyList())
+
+        val result = solarReportService.buildStatistics()
+
+        assertThat(result.grandTotal).isEqualByComparingTo(BigDecimal.ZERO)
+        assertThat(result.grandUsdTotal).isEqualByComparingTo(BigDecimal.ZERO)
+        assertThat(result.byYear).isEmpty()
+    }
+
+    @Test
+    fun `buildStatistics should calculate correct grand totals`() {
+        val records = listOf(
+            createReport(LocalDate.of(2024, 1, 1), BigDecimal("1000"), BigDecimal("25")),
+            createReport(LocalDate.of(2024, 2, 1), BigDecimal("2000"), BigDecimal("50")),
+            createReport(LocalDate.of(2023, 3, 1), BigDecimal("500"), BigDecimal("12"))
+        )
+        whenever(solarRepository.findAll()).thenReturn(records)
+
+        val result = solarReportService.buildStatistics()
+
+        assertThat(result.grandTotal).isEqualByComparingTo(BigDecimal("3500"))
+        assertThat(result.grandUsdTotal).isEqualByComparingTo(BigDecimal("87"))
+    }
+
+    @Test
+    fun `buildStatistics should group records by year sorted descending`() {
+        val records = listOf(
+            createReport(LocalDate.of(2022, 1, 1), BigDecimal("100"), BigDecimal("3")),
+            createReport(LocalDate.of(2024, 1, 1), BigDecimal("1000"), BigDecimal("25")),
+            createReport(LocalDate.of(2023, 1, 1), BigDecimal("500"), BigDecimal("12")),
+        )
+        whenever(solarRepository.findAll()).thenReturn(records)
+
+        val result = solarReportService.buildStatistics()
+
+        assertThat(result.byYear.map { it.year }).containsExactly(2024, 2023, 2022)
+    }
+
+    @Test
+    fun `buildStatistics should calculate correct year totals`() {
+        val records = listOf(
+            createReport(LocalDate.of(2024, 1, 1), BigDecimal("1000"), BigDecimal("25")),
+            createReport(LocalDate.of(2024, 2, 1), BigDecimal("2000"), BigDecimal("50")),
+        )
+        whenever(solarRepository.findAll()).thenReturn(records)
+
+        val result = solarReportService.buildStatistics()
+
+        val year2024 = result.byYear.first { it.year == 2024 }
+        assertThat(year2024.total).isEqualByComparingTo(BigDecimal("3000"))
+        assertThat(year2024.usdTotal).isEqualByComparingTo(BigDecimal("75"))
+        assertThat(year2024.count).isEqualTo(2)
+    }
+
+    @Test
+    fun `buildStatistics should group records by month sorted ascending within year`() {
+        val records = listOf(
+            createReport(LocalDate.of(2024, 3, 1), BigDecimal("300"), BigDecimal("7")),
+            createReport(LocalDate.of(2024, 1, 1), BigDecimal("100"), BigDecimal("3")),
+            createReport(LocalDate.of(2024, 2, 1), BigDecimal("200"), BigDecimal("5")),
+        )
+        whenever(solarRepository.findAll()).thenReturn(records)
+
+        val result = solarReportService.buildStatistics()
+
+        val months = result.byYear.first().byMonth.map { it.month }
+        assertThat(months).containsExactly(Month.JANUARY, Month.FEBRUARY, Month.MARCH)
+    }
+
+    @Test
+    fun `buildStatistics should calculate correct month totals`() {
+        val records = listOf(
+            createReport(LocalDate.of(2024, 1, 1), BigDecimal("1000"), BigDecimal("25")),
+            createReport(LocalDate.of(2024, 1, 15), BigDecimal("500"), BigDecimal("12")),
+            createReport(LocalDate.of(2024, 2, 1), BigDecimal("2000"), BigDecimal("50")),
+        )
+        whenever(solarRepository.findAll()).thenReturn(records)
+
+        val result = solarReportService.buildStatistics()
+
+        val year2024 = result.byYear.first { it.year == 2024 }
+        val january = year2024.byMonth.first { it.month == Month.JANUARY }
+        assertThat(january.total).isEqualByComparingTo(BigDecimal("1500"))
+        assertThat(january.usdTotal).isEqualByComparingTo(BigDecimal("37"))
+        assertThat(january.count).isEqualTo(2)
+    }
+
+    @Test
+    fun `buildStatistics should handle multiple years with multiple months`() {
+        val records = listOf(
+            createReport(LocalDate.of(2023, 6, 1), BigDecimal("600"), BigDecimal("15")),
+            createReport(LocalDate.of(2023, 7, 1), BigDecimal("700"), BigDecimal("17")),
+            createReport(LocalDate.of(2024, 1, 1), BigDecimal("1000"), BigDecimal("25")),
+            createReport(LocalDate.of(2024, 1, 20), BigDecimal("400"), BigDecimal("10")),
+        )
+        whenever(solarRepository.findAll()).thenReturn(records)
+
+        val result = solarReportService.buildStatistics()
+
+        assertThat(result.byYear).hasSize(2)
+
+        val year2024 = result.byYear.first { it.year == 2024 }
+        assertThat(year2024.byMonth).hasSize(1)
+        assertThat(year2024.byMonth.first().count).isEqualTo(2)
+
+        val year2023 = result.byYear.first { it.year == 2023 }
+        assertThat(year2023.byMonth).hasSize(2)
+        assertThat(year2023.total).isEqualByComparingTo(BigDecimal("1300"))
     }
 }

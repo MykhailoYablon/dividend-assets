@@ -43,9 +43,9 @@ class SolarService(
             var total = BigDecimal.ZERO
             var usTotal = BigDecimal.ZERO
             //Read file
-            val reports = DataFrame.readExcel(file.inputStream, skipRows = 1)
+            val reports = DataFrame.readExcel(file.inputStream)
                 .filter { row ->
-                    val dateStr = row["Дата"].toString().trim()
+                    val dateStr = row[0].toString().trim()
                     dateStr.matches(Regex("""\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}:\d{2}"""))
                 }
                 .map { row ->
@@ -75,7 +75,7 @@ class SolarService(
                         date = date,
                         amount = amount,
                         exchangeRate = exchangeRate,
-                        usdValue = usdValue,
+                        usdValue = usdValue
                     )
                 }
 

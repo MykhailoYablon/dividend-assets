@@ -48,23 +48,6 @@ class SecurityConfig(
     fun authenticationManager(config: AuthenticationConfiguration): AuthenticationManager =
         config.authenticationManager
 
-    //!!ONLY ONCE
-//    @Bean
-//    fun seedUser(userRepository: UserRepository, passwordEncoder: PasswordEncoder) =
-//        CommandLineRunner {
-//            if (userRepository.findByUsername("GoldenApple") == null) {
-//                passwordEncoder.encode("firmanfox$")?.let { username ->
-//                    userRepository.save(
-//                        User(
-//                            username = "GoldenApple",
-//                            password = username,
-//                            role = "ROLE_USER"
-//                        )
-//                    )
-//                }
-//            }
-//        }
-
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http

@@ -2,7 +2,7 @@ spring:
   application:
     name: assets
   profiles:
-    active: {ENV}
+    active: ${ENV}
   security:
     csrf:
       request-handler: XOR

@@ -24,6 +24,7 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.Month
+import java.util.Optional
 import kotlin.test.Test
 
 @ExtendWith(MockitoExtension::class)
@@ -214,18 +215,22 @@ class SolarServiceTest {
             createReport(LocalDate.of(2024, 1, 1), BigDecimal("1000"), BigDecimal("25")),
             createReport(LocalDate.of(2024, 2, 1), BigDecimal("2000"), BigDecimal("50"))
         )
-        whenever(solarRepository.findAll()).thenReturn(reports)
+        whenever (solarFileReportRepository.findFirstByUserIdOrderByCreatedAtDesc(userId)).thenReturn(
+            Optional.of(fileReport))
+        whenever(solarRepository.findAllBySolarFileReportId(1L)).thenReturn(reports)
 
-        solarReportService.getAllReports(model)
+        solarReportService.getAllReports(model, userId)
 
         verify(model).addAttribute("reports", reports)
     }
 
     @Test
     fun `getAllReports should add empty list to model when no records`() {
-        whenever(solarRepository.findAll()).thenReturn(emptyList())
+        whenever(solarFileReportRepository.findFirstByUserIdOrderByCreatedAtDesc(userId)).thenReturn(
+            Optional.of(fileReport))
+        whenever(solarRepository.findAllBySolarFileReportId(1L)).thenReturn(emptyList())
 
-        solarReportService.getAllReports(model)
+        solarReportService.getAllReports(model, userId)
 
         verify(model).addAttribute("reports", emptyList<SolarReport>())
     }

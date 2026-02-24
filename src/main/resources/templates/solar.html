@@ -55,10 +55,9 @@
   <div class="results">
     <div class="results-header">
       <h2>Transaction Records</h2>
-      <div style="display:flex; align-items:center; gap:12px;">
-        <div class="total-pill" th:if="${total}" th:text="${total}"></div>
-        <a class="stats-btn" th:href="@{/statistics}">📊 Statistics</a>
-      </div>
+      <div class="total-pill" th:if="${total}" th:text="${total}"></div>
+      <div class="total-pill" th:if="${usTotal}" th:text="${usTotal}"></div>
+      <a class="stats-btn" th:href="@{/statistics}">📊 Statistics</a>
     </div>
 
     <div class="table-wrap" th:if="${not #lists.isEmpty(reports)}">

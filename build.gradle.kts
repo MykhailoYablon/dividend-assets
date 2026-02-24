@@ -5,6 +5,9 @@ plugins {
 	id("io.spring.dependency-management") version "1.1.7"
 	kotlin("plugin.jpa") version "2.2.21"
 	kotlin("kapt") version "2.3.10"
+
+	id("org.owasp.dependencycheck") version "9.0.9"
+	id("com.github.spotbugs") version "6.0.9"
 }
 
 group = "com.kotlin"
@@ -19,6 +22,7 @@ java {
 
 repositories {
 	mavenCentral()
+	mavenLocal()
 }
 
 dependencies {

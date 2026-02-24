@@ -387,3 +387,25 @@ td:last-child {
 
 .logout-btn:hover  { opacity: 0.88; transform: translateY(-1px); }
 .logout-btn:active { transform: translateY(0); }
+
+.stats-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 20px;
+    background: linear-gradient(135deg, var(--leaf) 0%, var(--green) 100%);
+    color: #fff;
+    border-radius: 100px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 4px 16px rgba(45,90,39,0.20);
+    transition: opacity 0.2s, transform 0.15s;
+    white-space: nowrap;
+}
+
+.stats-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}

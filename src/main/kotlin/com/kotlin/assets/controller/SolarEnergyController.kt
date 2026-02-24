@@ -20,8 +20,11 @@ class SolarEnergyController(
 ) {
 
     @GetMapping("/")
-    fun getAllReports(model: Model): String {
-        solarService.getAllReports(model)
+    fun getAllReports(
+        model: Model,
+        @AuthenticationPrincipal user: MyUserDetails
+    ): String {
+        solarService.getAllReports(model, user.getId())
         return "solar"
     }
 

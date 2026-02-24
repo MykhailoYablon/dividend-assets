@@ -34,4 +34,6 @@ interface SolarRepository : JpaRepository<SolarReport, Long> {
         @Param("exchangeRate") exchangeRate: BigDecimal,
         @Param("usdValue") usdValue: BigDecimal
     ) : Long
+
+    fun findAllBySolarFileReportId(fileId: Long?): List<SolarReport>
 }

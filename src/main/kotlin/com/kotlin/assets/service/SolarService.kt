@@ -12,10 +12,12 @@ import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.filter
 import org.jetbrains.kotlinx.dataframe.api.map
 import org.jetbrains.kotlinx.dataframe.io.readExcel
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.ui.Model
 import org.springframework.web.multipart.MultipartFile
+import org.springframework.web.server.ResponseStatusException
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDateTime
@@ -47,7 +49,7 @@ class SolarService(
 
             val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss")
             var total = BigDecimal.ZERO
-            var usTotal = BigDecimal.ZERO
+            var usdTotal = BigDecimal.ZERO
             //Read file
             val reports = DataFrame.readExcel(file.inputStream, skipRows = if (skipRow) 1 else 0)
                 .filter { row ->
@@ -63,7 +65,7 @@ class SolarService(
                         .toBigDecimal()
                     total += amount
                     val usdValue = amount.divide(exchangeRate, 2, RoundingMode.HALF_UP)
-                    usTotal += usdValue
+                    usdTotal += usdValue
 
                     val reportId =
                         solarRepository.upsert(
@@ -85,19 +87,29 @@ class SolarService(
                     )
                 }
 
+            fileReport.total = total
+            fileReport.usdTotal = usdTotal
 
             model.addAttribute("reports", reports)
             model.addAttribute("total", "Total Amount: $total ₴")
-            model.addAttribute("usTotal", "Total US Amount: $usTotal $")
+            model.addAttribute("usTotal", "Total US Amount: $usdTotal $")
         } catch (e: Exception) {
             logger.info("Error {e}", e)
             throw IllegalArgumentException("Invalid or corrupted xlsx file")
         }
     }
 
-    fun getAllReports(model: Model) {
-        val reports = solarRepository.findAll()
+    fun getAllReports(model: Model, userId: Long) {
+        val fileReport = solarFileReportRepository.findFirstByUserIdOrderByCreatedAtDesc(userId)
+            .orElseThrow { throw ResponseStatusException(HttpStatus.NOT_FOUND) }
+        val total = fileReport.total
+        val usdTotal = fileReport.usdTotal
+
+        val reports = solarRepository.findAllBySolarFileReportId(fileReport.id)
+
         model.addAttribute("reports", reports)
+        model.addAttribute("total", "Total Amount: $total ₴")
+        model.addAttribute("usTotal", "Total US Amount: $usdTotal $")
     }
 
     fun buildStatistics(): Statistics {

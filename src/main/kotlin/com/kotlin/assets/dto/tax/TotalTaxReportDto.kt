@@ -1,4 +1,4 @@
-package com.kotlin.assets.dto
+package com.kotlin.assets.dto.tax
 
 import java.math.BigDecimal
 

@@ -1,7 +1,7 @@
 package com.kotlin.assets.mapper
 
-import com.kotlin.assets.dto.DividendTaxReportDto
-import com.kotlin.assets.dto.TotalTaxReportDto
+import com.kotlin.assets.dto.tax.DividendTaxReportDto
+import com.kotlin.assets.dto.tax.TotalTaxReportDto
 import com.kotlin.assets.entity.DividendTaxReport
 import com.kotlin.assets.entity.TotalTaxReport
 import org.mapstruct.Mapper

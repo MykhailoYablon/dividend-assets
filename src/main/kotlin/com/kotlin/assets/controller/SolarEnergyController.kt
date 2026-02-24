@@ -41,7 +41,13 @@ class SolarEnergyController(
             val safeFilename = StringUtils.cleanPath(file.originalFilename ?: "unknown")
                 .replace("..", "") // prevent path traversal
 
-            solarService.calculateGreenReturn(file = file, model = model, fileName = safeFilename, userId = user.getId())
+            solarService.calculateGreenReturn(
+                file = file,
+                model = model,
+                fileName = safeFilename,
+                userId = user.getId(),
+                true
+            )
 
             model.addAttribute("message", "File uploaded successfully: $safeFilename")
         } else {
@@ -53,7 +59,7 @@ class SolarEnergyController(
     @GetMapping("/statistics")
     fun statistics(model: Model): String {
         val statistics = solarService.buildStatistics()
-            model.addAttribute("stats", statistics)
+        model.addAttribute("stats", statistics)
         return "statistics"
     }
 }

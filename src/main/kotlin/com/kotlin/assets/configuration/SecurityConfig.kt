@@ -1,14 +1,11 @@
 package com.kotlin.assets.configuration
 
 import com.kotlin.assets.configuration.jwt.JwtFilter
-import com.kotlin.assets.entity.User
-import com.kotlin.assets.repository.UserRepository
 import com.kotlin.assets.service.impl.UserDetailsServiceImpl
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -22,10 +19,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.csrf.CsrfToken
-import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler
-import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler
 import org.springframework.web.filter.OncePerRequestFilter
 
 @Configuration
@@ -62,6 +56,11 @@ class SecurityConfig(
             }
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
+            .exceptionHandling { exceptions ->
+                exceptions.authenticationEntryPoint { request, response, _ ->
+                    response.sendRedirect("/login")
+                }
+            }
             .logout { logout ->
                 logout
                     .logoutUrl("/logout")

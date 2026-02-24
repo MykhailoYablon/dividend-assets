@@ -5,304 +5,8 @@
     <title>Statistics – SolarSave</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/statistics.css}"/>
     <link rel="stylesheet" th:href="@{/css/solar.css}"/>
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        :root {
-            --sky:       #e8f4f0;
-            --earth:     #1a2e1f;
-            --leaf:      #2d5a27;
-            --sun:       #f5a623;
-            --sun-light: #fff3d6;
-            --green:     #3db554;
-            --green-dim: rgba(61,181,84,0.10);
-            --panel:     #ffffff;
-            --border:    #d4e8d0;
-            --muted:     #6b8f6e;
-            --radius:    14px;
-        }
-
-        body {
-            font-family: 'Outfit', sans-serif;
-            background: var(--sky);
-            color: var(--earth);
-            min-height: 100vh;
-            overflow-x: hidden;
-            position: relative;
-        }
-
-        body::before {
-            content: '';
-            position: fixed; inset: 0;
-            background:
-                radial-gradient(ellipse 80% 50% at 70% -10%, #ffe8a0 0%, transparent 60%),
-                radial-gradient(ellipse 60% 40% at 100% 0%,  #ffd166 0%, transparent 50%),
-                linear-gradient(180deg, #cdeee3 0%, #e8f4f0 40%, #f0faf5 100%);
-            z-index: 0;
-        }
-
-        .sun-orb {
-            position: fixed; top: -60px; right: 80px;
-            width: 200px; height: 200px; border-radius: 50%;
-            background: radial-gradient(circle, #ffe066 30%, #f5a623 70%, transparent 100%);
-            box-shadow: 0 0 60px 20px rgba(245,166,35,0.25);
-            animation: pulse-sun 4s ease-in-out infinite;
-            z-index: 0;
-        }
-
-        @keyframes pulse-sun {
-            0%,100% { box-shadow: 0 0 60px 20px rgba(245,166,35,0.25); }
-            50%      { box-shadow: 0 0 90px 40px rgba(245,166,35,0.35); }
-        }
-
-        .panel-deco {
-            position: fixed; bottom: 0; left: 0; right: 0; height: 90px;
-            background:
-                repeating-linear-gradient(90deg,  rgba(45,90,39,0.07) 0px, rgba(45,90,39,0.07) 1px, transparent 1px, transparent 48px),
-                repeating-linear-gradient(180deg, rgba(45,90,39,0.07) 0px, rgba(45,90,39,0.07) 1px, transparent 1px, transparent 28px);
-            z-index: 0;
-        }
-
-        /* Logout bar */
-        .logout-bar {
-            position: fixed; top: 20px; right: 24px;
-            display: flex; align-items: center; gap: 14px;
-            background: rgba(255,255,255,0.72);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--border);
-            border-radius: 100px;
-            padding: 8px 8px 8px 18px;
-            box-shadow: 0 4px 20px rgba(45,90,39,0.10);
-            z-index: 100;
-        }
-
-        .logout-user { font-size: 13px; font-weight: 600; color: var(--leaf); }
-
-        .logout-btn {
-            padding: 8px 18px;
-            background: linear-gradient(135deg, var(--leaf) 0%, var(--green) 100%);
-            color: #fff; border: none; border-radius: 100px;
-            font-family: 'Outfit', sans-serif;
-            font-size: 13px; font-weight: 600; cursor: pointer;
-            transition: opacity 0.2s, transform 0.15s;
-        }
-
-        .logout-btn:hover { opacity: 0.88; transform: translateY(-1px); }
-
-        /* Page */
-        .page {
-            position: relative; z-index: 1;
-            max-width: 900px; margin: 0 auto;
-            padding: 60px 32px 100px;
-        }
-
-        /* Header */
-        header {
-            margin-bottom: 48px;
-            animation: fadeUp 0.6s ease both;
-        }
-
-        .logo-row {
-            display: flex; align-items: center; gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .logo-icon {
-            width: 40px; height: 40px; background: var(--sun);
-            border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 20px;
-            box-shadow: 0 3px 12px rgba(245,166,35,0.35);
-        }
-
-        .logo-text {
-            font-size: 12px; font-weight: 600; color: var(--leaf);
-            letter-spacing: 0.12em; text-transform: uppercase;
-        }
-
-        .header-row {
-            display: flex; align-items: flex-end;
-            justify-content: space-between; gap: 16px; flex-wrap: wrap;
-        }
-
-        h1 {
-            font-size: clamp(2rem, 5vw, 3.2rem);
-            font-weight: 800; letter-spacing: -0.03em; line-height: 1.08;
-        }
-
-        h1 em { font-style: normal; color: var(--green); }
-
-        .back-btn {
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 11px 22px;
-            background: rgba(255,255,255,0.8);
-            border: 1px solid var(--border);
-            border-radius: 100px;
-            font-family: 'Outfit', sans-serif;
-            font-size: 13px; font-weight: 600; color: var(--leaf);
-            text-decoration: none;
-            backdrop-filter: blur(8px);
-            transition: background 0.2s, transform 0.15s;
-            white-space: nowrap;
-        }
-
-        .back-btn:hover { background: #fff; transform: translateY(-1px); }
-
-        /* Grand total banner */
-        .grand-total {
-            background: linear-gradient(135deg, var(--leaf) 0%, var(--green) 100%);
-            border-radius: var(--radius);
-            padding: 28px 36px;
-            display: flex; align-items: center; justify-content: space-between;
-            gap: 16px; flex-wrap: wrap;
-            margin-bottom: 40px;
-            box-shadow: 0 8px 32px rgba(45,90,39,0.20);
-            animation: fadeUp 0.6s 0.1s ease both;
-            position: relative; overflow: hidden;
-        }
-
-        .grand-total::before {
-            content: '☀️';
-            position: absolute; right: 32px; top: 50%;
-            transform: translateY(-50%);
-            font-size: 64px; opacity: 0.12;
-        }
-
-        .grand-total-label {
-            font-size: 12px; font-weight: 600;
-            letter-spacing: 0.16em; text-transform: uppercase;
-            color: rgba(255,255,255,0.7); margin-bottom: 6px;
-        }
-
-        .grand-total-value {
-            font-family: 'Space Mono', monospace;
-            font-size: clamp(1.8rem, 4vw, 2.6rem);
-            font-weight: 700; color: #fff;
-        }
-
-        .grand-total-meta {
-            text-align: right;
-            font-size: 13px; color: rgba(255,255,255,0.65);
-            line-height: 1.8;
-        }
-
-        .grand-total-meta strong { color: #fff; font-size: 18px; }
-
-        /* Year blocks */
-        .year-block {
-            margin-bottom: 32px;
-            animation: fadeUp 0.6s ease both;
-        }
-
-        .year-block:nth-child(2) { animation-delay: 0.15s; }
-        .year-block:nth-child(3) { animation-delay: 0.25s; }
-        .year-block:nth-child(4) { animation-delay: 0.35s; }
-
-        .year-header {
-            display: flex; align-items: center;
-            justify-content: space-between; gap: 12px;
-            margin-bottom: 14px; flex-wrap: wrap;
-        }
-
-        .year-title {
-            font-family: 'Space Mono', monospace;
-            font-size: 1.1rem; font-weight: 700; color: var(--earth);
-            display: flex; align-items: center; gap: 10px;
-        }
-
-        .year-title::before {
-            content: '';
-            display: block; width: 10px; height: 10px;
-            background: var(--sun); border-radius: 50%;
-            box-shadow: 0 0 8px rgba(245,166,35,0.6);
-        }
-
-        .year-total-pill {
-            font-family: 'Space Mono', monospace;
-            font-size: 13px; font-weight: 700;
-            background: var(--sun-light);
-            border: 1px solid #f5d07a;
-            border-radius: 100px;
-            padding: 5px 16px; color: #8a5e00;
-        }
-
-        /* Month table */
-        .month-table-wrap {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: var(--radius); overflow: hidden;
-            box-shadow: 0 4px 20px rgba(45,90,39,0.06);
-        }
-
-        table { width: 100%; border-collapse: collapse; }
-
-        thead tr { background: #f2faf3; }
-
-        th {
-            padding: 12px 20px; text-align: left;
-            font-size: 10px; letter-spacing: 0.18em;
-            text-transform: uppercase; color: var(--muted);
-            font-weight: 600; border-bottom: 1px solid var(--border);
-        }
-
-        tbody tr {
-            border-bottom: 1px solid #edf7ee;
-            transition: background 0.15s;
-        }
-
-        tbody tr:last-child { border-bottom: none; }
-        tbody tr:hover { background: #f7fdf8; }
-
-        td { padding: 13px 20px; font-size: 14px; }
-
-        .td-month { color: var(--earth); font-weight: 500; }
-
-        .td-count {
-            font-family: 'Space Mono', monospace;
-            font-size: 12px; color: var(--muted); text-align: center;
-        }
-
-        .td-amount {
-            text-align: right;
-            font-family: 'Space Mono', monospace;
-            font-size: 13px; font-weight: 700; color: var(--leaf);
-        }
-
-        /* Progress bar */
-        .bar-cell { width: 30%; padding: 13px 20px 13px 0; }
-
-        .bar-track {
-            height: 6px; background: #e8f4e8; border-radius: 100px; overflow: hidden;
-        }
-
-        .bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--green), var(--sun));
-            border-radius: 100px;
-            transition: width 0.8s ease;
-        }
-
-        /* Empty */
-        .empty-state {
-            background: var(--panel); border: 2px dashed var(--border);
-            border-radius: var(--radius);
-            text-align: center; padding: 72px 32px; color: var(--muted);
-        }
-
-        .empty-icon { font-size: 48px; display: block; margin-bottom: 16px; opacity: 0.5; }
-
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        @media (max-width: 600px) {
-            .page { padding: 36px 16px 80px; }
-            .bar-cell { display: none; }
-            .grand-total { padding: 24px; }
-        }
-    </style>
 </head>
 <body>
 
@@ -343,6 +47,42 @@
             <div><strong th:text="${#aggregates.sum(stats.byYear.![count])}">0</strong> transactions</div>
         </div>
     </div>
+
+
+    <!-- Pass Thymeleaf data to JS -->
+    <script th:inline="javascript">
+        const YEARS_DATA = /*[[${stats.byYear}]]*/ [];
+    </script>
+
+    <!-- Chart card -->
+    <div class="chart-card">
+
+        <div class="chart-header">
+            <div>
+                <p class="section-label">Earnings Overview</p>
+                <h2 class="chart-title" id="chart-title">Year by Year</h2>
+            </div>
+            <div class="chart-controls">
+                <div class="currency-toggle">
+                    <button class="toggle-btn active" id="btn-uah" onclick="switchCurrency('uah')">UAH</button>
+                    <button class="toggle-btn" id="btn-usd" onclick="switchCurrency('usd')">USD</button>
+                </div>
+                <button class="back-to-years" id="back-btn" onclick="showYears()" style="display:none">
+                    ← All Years
+                </button>
+            </div>
+        </div>
+
+        <div class="chart-wrap">
+            <canvas id="earningsChart"></canvas>
+            <div class="chart-tooltip" id="tooltip"></div>
+        </div>
+
+        <p class="chart-hint" id="chart-hint">Click a bar to drill down by month</p>
+    </div>
+
+    <!-- Load chart logic from static file -->
+    <script th:src="@{/js/earnings-chart.js}"></script>
 
     <!-- Year blocks -->
     <div th:if="${stats != null and not #lists.isEmpty(stats.byYear)}">

@@ -1,6 +1,8 @@
 spring:
   application:
     name: assets
+  profiles:
+    active: {ENV}
   security:
     csrf:
       request-handler: XOR
@@ -9,9 +11,9 @@ spring:
       max-file-size: 10MB
       max-request-size: 12MB
   datasource:
-    url: jdbc:postgresql://${PROD_DB_HOST}:${PROD_DB_PORT}/${PROD_DB_NAME}
-    username: ${PROD_DB_USERNAME}
-    password: ${PROD_DB_PASSWORD}
+    url: jdbc:postgresql://${DB_HOST:127.0.0.1}:${DB_PORT:5432}/${DB_NAME:mydatabase}
+    username: ${DB_USERNAME:myuser}
+    password: ${DB_PASSWORD:mysecretpassword}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

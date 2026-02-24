@@ -184,8 +184,13 @@ class SolarServiceTest {
                 "Валюта картки" to row.getOrElse(5) { "" }.toString(),
             )
         }
+        val header = mutableListOf("Історія операцій за період 01.04.2022 - 20.02.2026")
+
+        val headerFrame = header.toDataFrame()
 
         val df = dataRows.toDataFrame()
+
+//        val concat = headerFrame.concat(df)
 
         // Write the DataFrame to the OutputStream
         val wb = WorkbookFactory.create(true)

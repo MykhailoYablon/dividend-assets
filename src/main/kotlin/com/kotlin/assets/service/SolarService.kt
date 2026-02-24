@@ -31,7 +31,13 @@ class SolarService(
     private val logger = KotlinLogging.logger {}
 
     @Transactional
-    fun calculateGreenReturn(file: MultipartFile, model: Model, fileName: String, userId: Long) {
+    fun calculateGreenReturn(
+        file: MultipartFile,
+        model: Model,
+        fileName: String,
+        userId: Long,
+        skipRow: Boolean = false
+    ) {
         try {
 
             // Always create a new file report entry as an audit record
@@ -43,7 +49,7 @@ class SolarService(
             var total = BigDecimal.ZERO
             var usTotal = BigDecimal.ZERO
             //Read file
-            val reports = DataFrame.readExcel(file.inputStream)
+            val reports = DataFrame.readExcel(file.inputStream, skipRows = if (skipRow) 1 else 0)
                 .filter { row ->
                     val dateStr = row[0].toString().trim()
                     dateStr.matches(Regex("""\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}:\d{2}"""))
@@ -124,7 +130,7 @@ class SolarService(
         return Statistics(
             grandTotal = records.sumOf { it.amount },
             grandUsdTotal = records.sumOf { it.usdValue },
-            byYear     = byYear
+            byYear = byYear
         )
     }
 }

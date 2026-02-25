@@ -1,8 +1,9 @@
 package com.kotlin.assets.dto.tax.xml
 
+import jakarta.xml.bind.annotation.XmlAccessType
+import jakarta.xml.bind.annotation.XmlAccessorType
 import jakarta.xml.bind.annotation.XmlElement
 
-@Data
 @XmlAccessorType(XmlAccessType.FIELD)
 data class DeclarHead(
 

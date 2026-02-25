@@ -21,7 +21,7 @@ class TaxController(val taxService: TaxService) {
         @RequestPart("file", required = true) file: MultipartFile,
         @RequestParam(required = false) isMilitary: Boolean
     ): TotalTaxReportDto {
-        return taxService.calculateDividendTax(year, file, isMilitary)
+        return taxService.calculateTax(year, file, isMilitary)
     }
 
     @GetMapping("/reports")

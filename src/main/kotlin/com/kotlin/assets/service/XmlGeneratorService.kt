@@ -5,8 +5,10 @@ import com.kotlin.assets.dto.tax.xml.DeclarBody
 import com.kotlin.assets.dto.tax.xml.DeclarBodyF1
 import jakarta.xml.bind.JAXBContext
 import jakarta.xml.bind.Marshaller
+import org.springframework.stereotype.Service
 import java.io.File
 
+@Service
 class XmlGeneratorService {
 
     private val encoding = "windows-1251"

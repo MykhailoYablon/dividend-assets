@@ -32,9 +32,9 @@ class TaxService(
     val exportDir = "exports"
 
     @Transactional
-    fun calculateDividendTax(year: Short, file: MultipartFile, isMilitary: Boolean): TotalTaxReportDto {
+    fun calculateTax(year: Short, file: MultipartFile, isMilitary: Boolean): TotalTaxReportDto {
 
-        val parseIBPositions = parser.parseDividendFile(file)
+        val parseIBPositions = parser.parseIBFile(file)
 
         val dividends = parseIBPositions.dividends
 
@@ -128,8 +128,11 @@ class TaxService(
     private fun createDeclar(uuid: UUID, totalTaxReport: TotalTaxReport): Declar {
         val declar = Declar()
 
+        val totalMilitaryTax5 = totalTaxReport.totalMilitaryTax5
+
+
         val head = DeclarHead(
-            tin = "",
+            tin = "", // IPN
             cDoc = "F01",
             cDocSub = "002",
             cDocVer = "11",
@@ -142,7 +145,7 @@ class TaxService(
             periodYear = "2025",
             cStiOrig = "915",
             cDocStan = "1",
-            dFill = "16012026"
+            dFill = "16012026" // Дата заповнення
         )
 
         // Create linked docs
@@ -166,31 +169,31 @@ class TaxService(
             h01 = "1",
             h03 = "1",
             h05 = "1",
-            hbos = "Test",
-            hcity = "Test",
+            hbos = "Test", // Name
+            hcity = "Test", // City
             hd1 = "1",
-            hfill = "16012026",
-            hname = "Test Test",
-            hsti = "ДПС",
+            hfill = "16012026", // Date of fill
+            hname = "Test Test", // User name
+            hsti = "ДПС", // ГОЛОВНЕ УПРАВЛІННЯ ДПС
             hstreet = "Stree",
-            htin = "",
+            htin = "", // IPN
             hz = "1",
             hzy = "2025",
-            r0104g3 = BigDecimal.valueOf(2323.86),
-            r0104g6 = BigDecimal.valueOf(209.15),
-            r0104g7 = BigDecimal.ZERO,
-            r0108g3 = BigDecimal.ZERO,
-            r0108g6 = BigDecimal.ZERO,
-            r0108g7 = BigDecimal.ZERO,
+            r0104g3 = totalTaxReport.totalUaBrutto, // Dividends totalUaBrutto
+            r0104g6 = totalTaxReport.totalTax9, // Tax Dividends
+            r0104g7 = totalTaxReport.totalMilitaryTax5,
+            r0108g3 = BigDecimal.ZERO, // Інвест прибуток від акцій до податків
+            r0108g6 = BigDecimal.ZERO, // до сплати податку від акцій
+            r0108g7 = BigDecimal.ZERO, // військовий збір з акцій
             r01010g2s = "Інші проценти",
-            r010g3 = BigDecimal.ZERO,
-            r010g6 = BigDecimal.ZERO,
-            r010g7 = BigDecimal.ZERO,
-            r012g3 = BigDecimal.ZERO,
-            r013g3 = BigDecimal.ZERO,
-            r018g3 = BigDecimal.ZERO,
-            r0201g3 = BigDecimal.ZERO,
-            r0211g3 = BigDecimal.ZERO
+            r010g3 = BigDecimal.ZERO, // Всього прибуток
+            r010g6 = BigDecimal.ZERO, //всього податок акції + дивіденди
+            r010g7 = BigDecimal.ZERO, // всього військовий збір
+            r012g3 = BigDecimal.ZERO, // Всього прибуток
+            r013g3 = BigDecimal.ZERO, //всього податок акції + дивіденди
+            r018g3 = BigDecimal.ZERO, //Сплачений податок у джерела 347.67
+            r0201g3 = BigDecimal.ZERO, // ?
+            r0211g3 = BigDecimal.ZERO // всього військовий збір
         )
 
         declar.setDeclarBody(body)
@@ -199,11 +202,12 @@ class TaxService(
     }
 
     private fun createDeclarF1(uuid: UUID, totalTaxReport: TotalTaxReport): Declar {
+
         val declar = Declar()
 
         // DECLARHEAD
         val head = DeclarHead(
-            tin = "",
+            tin = "", // IPN
             cDoc = "F01",
             cDocSub = "212",
             cDocVer = "11",
@@ -216,7 +220,7 @@ class TaxService(
             periodYear = "2025",
             cStiOrig = "915",
             cDocStan = "1",
-            dFill = "16012026"
+            dFill = "16012026" // Date of fill
         )
 
         // Create linked docs
@@ -238,15 +242,15 @@ class TaxService(
         // DECLARBODY F1
         val body = DeclarBodyF1(
             hbos = "Test Test",
-            htin = "",
+            htin = "", // IPN
             hz = "1",
-            hzy = "2025",
-            r001g4 = "32130.56",
-            r001g5 = "31196.75",
-            r001g6 = "933.81",
-            r003g6 = "933.81",
-            r004g6 = "168.09",
-            r005g6 = "46.69",
+            hzy = "2025", // year
+            r001g4 = "32130.56", // Продаж ?
+            r001g5 = "31196.75", // Купівля ?
+            r001g6 = "933.81", // Інвест прибуток 933.81
+            r003g6 = "933.81", // Інвест прибуток 933.81
+            r004g6 = "168.09", // Усього до сплати податку 168.09
+            r005g6 = "46.69", // до сплати військового збору
             r031g6 = "933.81",
             r042g6 = "168.09",
             r052g6 = "46.69"

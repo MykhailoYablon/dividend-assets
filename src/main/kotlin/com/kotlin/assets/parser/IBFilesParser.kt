@@ -1,110 +1,176 @@
 package com.kotlin.assets.parser
 
-import com.kotlin.assets.dto.ib.*
-import com.opencsv.bean.CsvToBeanBuilder
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.toJavaLocalDate
+import com.kotlin.assets.dto.enums.SectionType
+import com.kotlin.assets.dto.ib.DividendRecord
+import com.kotlin.assets.dto.ib.TradeRecord
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
-import java.io.StringReader
+import org.w3c.dom.Element
+import org.w3c.dom.Node
+import org.w3c.dom.NodeList
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.regex.Matcher
-import java.util.regex.Pattern
+import javax.xml.parsers.DocumentBuilderFactory
 
 @Service
 class IBFilesParser {
 
-    val SYMBOL_PATTERN: Pattern = Pattern.compile("^([A-Z]+)(?=\\()")
-
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd, HH:mm:ss")
 
+    fun parseIbCsv(file: MultipartFile): Pair<Map<String, List<TradeRecord>>, MutableList<DividendRecord>> {
+        val tradeRecords = mutableListOf<TradeRecord>()
+        val dividendRecords = mutableListOf<DividendRecord>()
 
-    fun parseIBFile(ibReportFile: MultipartFile): ParsedData {
-        var currentSection: String? = null
-        val tradeLines = mutableListOf<String>()
-        val dividendLines = mutableListOf<String>()
-        val withholdingTaxLines = mutableListOf<String>()
+        var currentHeaders: Map<String, Int> = emptyMap()
+        var currentType: SectionType = SectionType.UNKNOWN
 
-        ibReportFile.inputStream.bufferedReader().useLines { lines ->
+        file.inputStream.bufferedReader().useLines { lines ->
             lines.forEach { line ->
-                val parts = line.split(",", limit = 2)
+                if (line.isBlank()) return@forEach
 
-                if (parts.isNotEmpty()) {
-                    val firstColumn = parts[0].trim()
+                val row = parseCsvLine(line)
 
-                    when {
-                        line.contains(",Header,") -> currentSection = firstColumn
-                        line.contains(",Data,") -> when (currentSection) {
-                            "Dividends" -> dividendLines.add(line)
-                            "Withholding Tax" -> withholdingTaxLines.add(line)
-                            "Trades" -> {
-                                val parts = line.split(",", limit = 5)
-                                if (parts[3].trim() == "Stocks") {
-                                    tradeLines.add(line)
-                                }
-                            }
-                        }
+                if (row.firstOrNull() == "ClientAccountID") {
+                    currentHeaders = row.mapIndexed { index, name -> name to index }.toMap()
+                    currentType = detectSectionType(currentHeaders)
+                    return@forEach
+                }
+
+                if (currentHeaders.isEmpty()) return@forEach
+
+                fun col(name: String) = currentHeaders[name]?.let { row.getOrElse(it) { "" } } ?: ""
+
+                when (currentType) {
+                    SectionType.TRADES -> runCatching {
+                        if (col("AssetClass") == "STK")
+                            tradeRecords.add(
+                                TradeRecord(
+                                    symbol = col("Symbol"),
+                                    tradeDate = LocalDate.parse(
+                                        col("TradeDate"),
+                                        DateTimeFormatter.ofPattern("yyyyMMdd")
+                                    ),
+                                    quantity = col("Quantity").toBigDecimal(),
+                                    tradePrice = col("TradePrice").toBigDecimal(),
+                                    costBasis = col("CostBasis").toBigDecimal(),
+                                    ibCommission = col("IBCommission").toBigDecimal(),
+                                    fifoPnlRealized = col("FifoPnlRealized").toBigDecimal(),
+                                    buySell = col("Buy/Sell")
+                                )
+                            )
                     }
+
+                    SectionType.DIVIDENDS -> runCatching {
+                        if (col("Type") == "Dividends")
+                            dividendRecords.add(
+                                DividendRecord(
+                                    symbol = col("Symbol"),
+                                    date = LocalDate.parse(
+                                        col("Date/Time").substringBefore(";"),
+                                        DateTimeFormatter.ofPattern("yyyyMMdd")
+                                    ),
+                                    amount = col("Amount").toBigDecimal(),
+                                    type = col("Type"),
+                                    description = col("Description")
+                                )
+                            )
+                    }
+
+                    SectionType.UNKNOWN -> return@forEach
                 }
             }
-
         }
-        val dividends = parseIbRecords(dividendLines)
-        val withholdingTax = parseIbRecords(withholdingTaxLines)
-        val stockTrades = parseTradeRecords(tradeLines)
 
-        return ParsedData(dividends, withholdingTax, stockTrades)
+        val closedTrades = tradeRecords
+            .sortedBy { it.tradeDate }
+            .groupBy { it.symbol }
+            .filter { (_, trades) -> trades.any { it.buySell == "SELL" } }
+
+        return Pair(closedTrades, dividendRecords)
     }
 
-    private fun parseIbRecords(lines: MutableList<String>): MutableList<IbData> {
-        if (lines.isEmpty()) return mutableListOf()
+    private fun detectSectionType(headers: Map<String, Int>): SectionType = when {
+        headers.containsKey("TradeDate") -> SectionType.TRADES
+        headers.containsKey("Date/Time") -> SectionType.DIVIDENDS
+        else -> SectionType.UNKNOWN
+    }
 
-        val csv = lines.joinToString("\n")
+    private fun parseCsvLine(line: String): List<String> {
+        val result = mutableListOf<String>()
+        val current = StringBuilder()
+        var inQuotes = false
 
-        return try {
-            StringReader(csv).use { stringReader ->
-                CsvToBeanBuilder<IBRecord>(stringReader)
-                    .withType(IBRecord::class.java)
-                    .withIgnoreLeadingWhiteSpace(true)
-                    .build()
-                    .parse()
-                    .filter { r -> !r.date.isEmpty() }
-                    .map { r ->
-                        IbData(extractSymbol(r.description), LocalDate.parse(r.date), r.amount)
-                    }
-                    .toMutableList()
+        for (char in line) {
+            when {
+                char == '"' -> inQuotes = !inQuotes
+                char == ',' && !inQuotes -> {
+                    result.add(current.toString())
+                    current.clear()
+                }
+
+                else -> current.append(char)
             }
-        } catch (e: Exception) {
-            throw RuntimeException("Error parsing dividends", e)
         }
+        result.add(current.toString())
+        return result
     }
 
-    private fun parseTradeRecords(lines: MutableList<String>): MutableList<TradeData> {
-        if (lines.isEmpty()) return mutableListOf()
+    fun parseIbXml(file: MultipartFile): Pair<Map<String, List<TradeRecord>>, List<DividendRecord>> {
+        val doc = DocumentBuilderFactory.newInstance()
+            .newDocumentBuilder()
+            .parse(file.inputStream)
 
-        val csv = lines.joinToString("\n")
+        doc.documentElement.normalize()
 
-        return try {
-            StringReader(csv).use { stringReader ->
-                CsvToBeanBuilder<IBTrade>(stringReader)
-                    .withType(IBTrade::class.java)
-                    .withIgnoreLeadingWhiteSpace(true)
-                    .build()
-                    .parse()
-                    .map { r ->
-                        TradeData(r.symbol, LocalDate.parse(r.date, formatter), r.basis, r.realizedPL, r.code)
-                    }
-                    .toMutableList()
+        fun Node.attr(name: String) = (this as Element).getAttribute(name)
+
+        val tradeRecords = doc.getElementsByTagName("Trade")
+            .toList()
+            .filter { node -> node.attr("assetCategory") == "STK" }
+            .mapNotNull { node ->
+                runCatching {
+                    TradeRecord(
+                        symbol = node.attr("symbol"),
+                        tradeDate = LocalDate.parse(
+                            node.attr("tradeDate"),
+                            DateTimeFormatter.ofPattern("yyyyMMdd")
+                        ),
+                        quantity = node.attr("quantity").toBigDecimal(),
+                        tradePrice = node.attr("tradePrice").toBigDecimal(),
+                        costBasis = node.attr("cost").toBigDecimal(),
+                        ibCommission = node.attr("ibCommission").toBigDecimal(),
+                        fifoPnlRealized = node.attr("fifoPnlRealized").toBigDecimal(),
+                        buySell = node.attr("buySell")
+                    )
+                }.getOrNull()
             }
-        } catch (e: Exception) {
-            throw RuntimeException("Error parsing trades", e)
-        }
+
+        val dividendRecords = doc.getElementsByTagName("CashTransaction")
+            .toList()
+            .filter { node -> node.attr("type") == "Dividends" }
+            .mapNotNull { node ->
+                runCatching {
+                    DividendRecord(
+                        symbol = node.attr("symbol"),
+                        date = LocalDate.parse(
+                            node.attr("dateTime").substringBefore(";"),
+                            DateTimeFormatter.ofPattern("yyyyMMdd")
+                        ),
+                        amount = node.attr("amount").toBigDecimal(),
+                        type = node.attr("type"),
+                        description = node.attr("description")
+                    )
+                }.getOrNull()
+            }
+
+        val closedTrades = tradeRecords
+            .sortedBy { it.tradeDate }
+            .groupBy { it.symbol }
+            .filter { (_, trades) -> trades.any { it.buySell == "SELL" } }
+
+        return Pair(closedTrades, dividendRecords)
     }
 
-    private fun extractSymbol(description: String): String {
-        val matcher: Matcher = SYMBOL_PATTERN.matcher(description)
-        return if (matcher.find()) matcher.group(1) else ""
-    }
-
+    // Extension to convert NodeList to a regular List
+    fun NodeList.toList(): List<Node> = (0 until length).map { item(it) }
 }

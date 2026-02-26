@@ -1,6 +1,7 @@
 package com.kotlin.assets.controller
 
 import com.kotlin.assets.dto.MyUserDetails
+import com.kotlin.assets.dto.enums.FileType
 import com.kotlin.assets.service.FileValidator
 import com.kotlin.assets.service.SolarService
 import org.springframework.http.MediaType
@@ -40,7 +41,10 @@ class SolarEnergyController(
             if (file.size > 10 * 1024 * 1024) {
                 throw IllegalArgumentException("File too large")
             }
-            fileValidator.validate(file)
+            val fileType = fileValidator.validate(file)
+            if (fileType != FileType.XLSX) {
+                throw IllegalArgumentException("Only xlsx files are allowed")
+            }
             val safeFilename = StringUtils.cleanPath(file.originalFilename ?: "unknown")
                 .replace("..", "") // prevent path traversal
 

@@ -40,7 +40,7 @@ dependencies {
 
 	implementation("com.opencsv:opencsv:5.12.0")
 
-	implementation("org.jetbrains.kotlinx:dataframe-excel:1.0.0-Beta4")
+	implementation("org.jetbrains.kotlinx:dataframe-excel:0.15.0")
 
 	implementation("org.mapstruct:mapstruct:1.6.3")
 

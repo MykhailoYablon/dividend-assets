@@ -1,6 +1,9 @@
 package com.kotlin.assets.service
 
+import com.kotlin.assets.dto.ib.DividendRecord
+import com.kotlin.assets.dto.enums.FileType
 import com.kotlin.assets.dto.enums.ReportStatus
+import com.kotlin.assets.dto.ib.TradeRecord
 import com.kotlin.assets.dto.tax.TotalTaxReportDto
 import com.kotlin.assets.dto.tax.xml.*
 import com.kotlin.assets.entity.DividendTaxReport
@@ -32,11 +35,19 @@ class TaxService(
     val exportDir = "exports"
 
     @Transactional
-    fun calculateTax(year: Short, file: MultipartFile, isMilitary: Boolean): TotalTaxReportDto {
+    fun calculateTax(
+        year: Short,
+        file: MultipartFile,
+        fileType: FileType,
+        isMilitary: Boolean
+    ): TotalTaxReportDto {
+        val ibReport = when (fileType) {
+            FileType.CSV  -> parser.parseIbCsv(file)
+            FileType.XML  -> parser.parseIbXml(file)
+            FileType.XLSX -> throw IllegalArgumentException("XLSX not supported yet")
+        }
 
-        val parseIBPositions = parser.parseIBFile(file)
-
-        val dividends = parseIBPositions.dividends
+        val dividends = ibReport.second
 
         val rateCache = dividends.map { it.date }
             .toSet()
@@ -78,9 +89,9 @@ class TaxService(
         }
 
         // Calculate tax on taxReport (not sum of individual taxes)
-        var totalTax9 = round(totalUaBrutto.multiply(BigDecimal("0.09")))
-        var totalMilitaryTax5 = round(totalUaBrutto.multiply(BigDecimal("0.05")))
-        var totalTaxSum = round(totalTax9.add(totalMilitaryTax5))
+        val totalTax9 = round(totalUaBrutto.multiply(BigDecimal("0.09")))
+        val totalMilitaryTax5 = round(totalUaBrutto.multiply(BigDecimal("0.05")))
+        val totalTaxSum = round(totalTax9.add(totalMilitaryTax5))
 
         val totalTaxReport =
             totalTaxReportRepository.findByYear(year).orElseGet {
@@ -90,6 +101,7 @@ class TaxService(
             }
 
         totalTaxReport.apply {
+            this.totalAmount = totalAmount
             this.totalUaBrutto = totalUaBrutto
             this.totalTax9 = totalTax9
             this.totalMilitaryTax5 = totalMilitaryTax5
@@ -114,8 +126,8 @@ class TaxService(
         val mainFilename = String.format("F0100214_Zvit_%s.xml", uuid)
         val f1Filename = String.format("F0121214_DodatokF1_%s.xml", uuid)
 
-        val mainFilePath: String = "exports" + File.separator + mainFilename
-        val f1FilePath: String = "exports" + File.separator + f1Filename
+        val mainFilePath: String = exportDir + File.separator + mainFilename
+        val f1FilePath: String = exportDir + File.separator + f1Filename
 
         val mainDeclar = createDeclar(uuid, totalTaxReport)
         val f1Declar = createDeclarF1(uuid, totalTaxReport)

@@ -27,6 +27,9 @@ spring:
         time_zone: Europe/Kyiv
         lob:
           non_contextual_creation: true
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    enabled: true
 server:
   port: 8081
 

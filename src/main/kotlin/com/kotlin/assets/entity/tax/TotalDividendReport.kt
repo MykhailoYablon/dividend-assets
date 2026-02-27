@@ -34,7 +34,7 @@ class TotalDividendReport(
     @Column(name = "total_tax_sum", nullable = false, precision = 19, scale = 2)
     var totalTaxSum: BigDecimal = BigDecimal.ZERO,
 
-    @OneToMany(mappedBy = "totalTaxReport", cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(mappedBy = "totalDividendReport", cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
     @JsonManagedReference
     var reports: MutableList<DividendTaxReport> = mutableListOf()
 

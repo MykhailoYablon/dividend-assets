@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface TotalTaxReportRepository : JpaRepository<TotalDividendReport, Long> {
+interface TotalDividendReportRepository : JpaRepository<TotalDividendReport, Long> {
     fun findByYear(year: Short): Optional<TotalDividendReport>
 }

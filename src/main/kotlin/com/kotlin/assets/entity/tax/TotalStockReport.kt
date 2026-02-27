@@ -34,12 +34,12 @@ class TotalStockReport(
     @Column(name = "total_tax_sum", nullable = false, precision = 19, scale = 2)
     var totalTaxSum: BigDecimal = BigDecimal.ZERO,
 
-    @OneToMany(mappedBy = "totalTaxReport", cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(mappedBy = "totalStockReport", cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
     @JsonManagedReference
     var reports: MutableList<StockTradeReport> = mutableListOf()
 
 ) {
-    fun setTaxReports(reports: MutableList<StockTradeReport>) {
+    fun setTaxReports(reports: List<StockTradeReport>) {
         this.reports.clear()
         reports.forEach(Consumer { report: StockTradeReport -> this.addTaxReport(report) }) // Add new ones
     }

@@ -11,6 +11,7 @@ import org.w3c.dom.NodeList
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.xml.parsers.DocumentBuilderFactory
+import kotlin.math.abs
 
 @Service
 class IBFilesParser {
@@ -50,7 +51,7 @@ class IBFilesParser {
                                         col("TradeDate"),
                                         DateTimeFormatter.ofPattern("yyyyMMdd")
                                     ),
-                                    quantity = col("Quantity").toBigDecimal(),
+                                    quantity = abs(col("Quantity").toInt()),
                                     tradePrice = col("TradePrice").toBigDecimal(),
                                     costBasis = col("CostBasis").toBigDecimal(),
                                     ibCommission = col("IBCommission").toBigDecimal(),
@@ -89,32 +90,6 @@ class IBFilesParser {
         return Pair(closedTrades, dividendRecords)
     }
 
-    private fun detectSectionType(headers: Map<String, Int>): SectionType = when {
-        headers.containsKey("TradeDate") -> SectionType.TRADES
-        headers.containsKey("Date/Time") -> SectionType.DIVIDENDS
-        else -> SectionType.UNKNOWN
-    }
-
-    private fun parseCsvLine(line: String): List<String> {
-        val result = mutableListOf<String>()
-        val current = StringBuilder()
-        var inQuotes = false
-
-        for (char in line) {
-            when {
-                char == '"' -> inQuotes = !inQuotes
-                char == ',' && !inQuotes -> {
-                    result.add(current.toString())
-                    current.clear()
-                }
-
-                else -> current.append(char)
-            }
-        }
-        result.add(current.toString())
-        return result
-    }
-
     fun parseIbXml(file: MultipartFile): Pair<Map<String, List<TradeRecord>>, List<DividendRecord>> {
         val doc = DocumentBuilderFactory.newInstance()
             .newDocumentBuilder()
@@ -135,7 +110,7 @@ class IBFilesParser {
                             node.attr("tradeDate"),
                             DateTimeFormatter.ofPattern("yyyyMMdd")
                         ),
-                        quantity = node.attr("quantity").toBigDecimal(),
+                        quantity = abs(node.attr("quantity").toInt()),
                         tradePrice = node.attr("tradePrice").toBigDecimal(),
                         costBasis = node.attr("cost").toBigDecimal(),
                         ibCommission = node.attr("ibCommission").toBigDecimal(),
@@ -169,6 +144,32 @@ class IBFilesParser {
             .filter { (_, trades) -> trades.any { it.buySell == "SELL" } }
 
         return Pair(closedTrades, dividendRecords)
+    }
+
+    private fun detectSectionType(headers: Map<String, Int>): SectionType = when {
+        headers.containsKey("TradeDate") -> SectionType.TRADES
+        headers.containsKey("Date/Time") -> SectionType.DIVIDENDS
+        else -> SectionType.UNKNOWN
+    }
+
+    private fun parseCsvLine(line: String): List<String> {
+        val result = mutableListOf<String>()
+        val current = StringBuilder()
+        var inQuotes = false
+
+        for (char in line) {
+            when {
+                char == '"' -> inQuotes = !inQuotes
+                char == ',' && !inQuotes -> {
+                    result.add(current.toString())
+                    current.clear()
+                }
+
+                else -> current.append(char)
+            }
+        }
+        result.add(current.toString())
+        return result
     }
 
     // Extension to convert NodeList to a regular List

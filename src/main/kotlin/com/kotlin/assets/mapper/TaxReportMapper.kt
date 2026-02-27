@@ -2,8 +2,8 @@ package com.kotlin.assets.mapper
 
 import com.kotlin.assets.dto.tax.DividendTaxReportDto
 import com.kotlin.assets.dto.tax.TotalTaxReportDto
-import com.kotlin.assets.entity.DividendTaxReport
-import com.kotlin.assets.entity.TotalTaxReport
+import com.kotlin.assets.entity.tax.DividendTaxReport
+import com.kotlin.assets.entity.tax.TotalDividendReport
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 
@@ -11,7 +11,7 @@ import org.mapstruct.Mapping
 interface TaxReportMapper {
 
     @Mapping(source = "reports", target = "taxReportDtos")
-    fun toDto(report: TotalTaxReport): TotalTaxReportDto
+    fun toDto(report: TotalDividendReport): TotalTaxReportDto
 
     fun toDto(report: DividendTaxReport): DividendTaxReportDto
 }

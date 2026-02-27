@@ -1,13 +1,14 @@
 package com.kotlin.assets.service
 
-import com.kotlin.assets.dto.ib.DividendRecord
 import com.kotlin.assets.dto.enums.FileType
 import com.kotlin.assets.dto.enums.ReportStatus
+import com.kotlin.assets.dto.ib.DividendRecord
 import com.kotlin.assets.dto.ib.TradeRecord
 import com.kotlin.assets.dto.tax.TotalTaxReportDto
 import com.kotlin.assets.dto.tax.xml.*
-import com.kotlin.assets.entity.DividendTaxReport
-import com.kotlin.assets.entity.TotalTaxReport
+import com.kotlin.assets.entity.tax.DividendTaxReport
+import com.kotlin.assets.entity.tax.StockTradeReport
+import com.kotlin.assets.entity.tax.TotalDividendReport
 import com.kotlin.assets.mapper.TaxReportMapper
 import com.kotlin.assets.parser.IBFilesParser
 import com.kotlin.assets.repository.TotalTaxReportRepository
@@ -19,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException
 import java.io.File
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.LocalDate
 import java.util.*
 
 @Service
@@ -42,17 +44,59 @@ class TaxService(
         isMilitary: Boolean
     ): TotalTaxReportDto {
         val ibReport = when (fileType) {
-            FileType.CSV  -> parser.parseIbCsv(file)
-            FileType.XML  -> parser.parseIbXml(file)
+            FileType.CSV -> parser.parseIbCsv(file)
+            FileType.XML -> parser.parseIbXml(file)
             FileType.XLSX -> throw IllegalArgumentException("XLSX not supported yet")
         }
 
+        val trades = ibReport.first
         val dividends = ibReport.second
 
-        val rateCache = dividends.map { it.date }
+        val allDates = (dividends.map { it.date } +
+                trades.values.flatten()
+                    .map { it.tradeDate })
             .toSet()
-            .associateWith { date -> exchangeRateService.getRateForDate(date) }
 
+        val rateCache = allDates.associateWith { date ->
+            exchangeRateService.getRateForDate(date)
+        }
+
+        // Calculate Stock Tax
+        val taxCalculations = calculateFifoTaxes(trades, rateCache)
+        // Save Stock Tax
+
+        // Calculate Dividend Tax
+        val taxReport = calculateDividendTax(dividends, rateCache, isMilitary, year)
+
+
+        return taxReportMapper.toDto(taxReport)
+    }
+
+    fun generateXmlTaxReport(year: Short) {
+        val totalTaxReport = totalTaxReportRepository.findByYear(year)
+            .orElseThrow { throw ResponseStatusException(HttpStatus.NOT_FOUND) }
+
+        val uuid = UUID.randomUUID()
+        val mainFilename = String.format("F0100214_Zvit_%s.xml", uuid)
+        val f1Filename = String.format("F0121214_DodatokF1_%s.xml", uuid)
+
+        val mainFilePath: String = exportDir + File.separator + mainFilename
+        val f1FilePath: String = exportDir + File.separator + f1Filename
+
+        val mainDeclar = createDeclar(uuid, totalTaxReport)
+        val f1Declar = createDeclarF1(uuid, totalTaxReport)
+
+        xmlGeneratorService.saveXmlToFile(mainDeclar, mainFilePath)
+        xmlGeneratorService.saveXmlToFile(f1Declar, f1FilePath)
+
+    }
+
+    private fun calculateDividendTax(
+        dividends: List<DividendRecord>,
+        rateCache: Map<LocalDate, BigDecimal>,
+        isMilitary: Boolean,
+        year: Short
+    ): TotalDividendReport {
         var totalAmount = BigDecimal.ZERO
         var totalUaBrutto = BigDecimal.ZERO
         val reports: MutableList<DividendTaxReport> = mutableListOf()
@@ -93,14 +137,14 @@ class TaxService(
         val totalMilitaryTax5 = round(totalUaBrutto.multiply(BigDecimal("0.05")))
         val totalTaxSum = round(totalTax9.add(totalMilitaryTax5))
 
-        val totalTaxReport =
+        val totalDividendReport =
             totalTaxReportRepository.findByYear(year).orElseGet {
-                TotalTaxReport(
+                TotalDividendReport(
                     year = year, status = ReportStatus.CALCULATED
                 )
             }
 
-        totalTaxReport.apply {
+        totalDividendReport.apply {
             this.totalAmount = totalAmount
             this.totalUaBrutto = totalUaBrutto
             this.totalTax9 = totalTax9
@@ -109,38 +153,76 @@ class TaxService(
             this.setTaxReports(reports)
         }
 
-        val taxReport = totalTaxReportRepository.save(totalTaxReport)
+        val taxReport = totalTaxReportRepository.save(totalDividendReport)
+        return taxReport
+    }
 
-        return taxReportMapper.toDto(taxReport)
+    private fun calculateFifoTaxes(
+        trades: Map<String, List<TradeRecord>>,
+        rateCache: Map<LocalDate, BigDecimal>
+    ): List<StockTradeReport> {
+
+        return trades.flatMap { (symbol, records) ->
+            val buyQueue = ArrayDeque(
+                records
+                    .filter { it.buySell == "BUY" }
+                    .sortedBy { it.tradeDate }
+                    .flatMap { buy ->
+                        val rate = rateCache[buy.tradeDate] ?: BigDecimal.ONE
+                        List(buy.quantity) {
+                            Triple(buy.tradeDate, buy.costBasis / BigDecimal(buy.quantity) * rate, rate)
+                        }
+                    }
+            )
+
+            records
+                .filter { it.buySell == "SELL" }
+                .sortedBy { it.tradeDate }
+                .map { sell ->
+                    val sellExchangeRate = rateCache[sell.tradeDate] ?: BigDecimal.ZERO
+
+                    val buyEntries = (0 until sell.quantity).map {
+                        buyQueue.removeFirst() ?: error("Not enough BUY trades in queue for symbol $symbol")
+                    }
+
+                    val totalBuyPriceUAH = buyEntries.sumOf { (_, costBasisUah, _) -> costBasisUah }
+
+                    // For reporting purposes - take from first and last buy if spread across multiple
+                    val buyDates = buyEntries.map { (buyDate, _, _) -> buyDate }
+                    val buyRates = buyEntries.map { (_, _, buyRate) -> buyRate }
+
+                    val ibCommission = sell.ibCommission * sellExchangeRate
+                    val sellPriceUah = sellExchangeRate.multiply(sell.tradePrice).setScale(scale, roundingMode)
+//                        .minus(ibCommission)
+
+                    StockTradeReport(
+                        symbol = symbol,
+                        sellQuantity = sell.quantity,
+                        buyPriceUah = totalBuyPriceUAH,
+                        sellPriceUah = sellPriceUah,
+                        originalBuyPriceUsd = sell.tradePrice,
+                        originalPL = sell.fifoPnlRealized,
+                        ibCommission = ibCommission,
+                        buyDate = buyDates.first(),
+                        sellDate = sell.tradeDate,
+                        buyExchangeRate = buyRates.first(),
+                        sellExchangeRate = sellExchangeRate,
+                        netProfitUah = sellPriceUah - totalBuyPriceUAH,
+                        tax18 = sellPriceUah.multiply(BigDecimal(0.18)).setScale(scale, roundingMode),
+                        militaryTax5 = sellPriceUah.multiply(BigDecimal(0.05)).setScale(scale, roundingMode)
+                    )
+                }
+        }
     }
 
     private fun round(value: BigDecimal): BigDecimal {
         return value.setScale(2, RoundingMode.HALF_UP)
     }
 
-    fun generateXmlTaxReport(year: Short) {
-        val totalTaxReport = totalTaxReportRepository.findByYear(year)
-            .orElseThrow { throw ResponseStatusException(HttpStatus.NOT_FOUND) }
-
-        val uuid = UUID.randomUUID()
-        val mainFilename = String.format("F0100214_Zvit_%s.xml", uuid)
-        val f1Filename = String.format("F0121214_DodatokF1_%s.xml", uuid)
-
-        val mainFilePath: String = exportDir + File.separator + mainFilename
-        val f1FilePath: String = exportDir + File.separator + f1Filename
-
-        val mainDeclar = createDeclar(uuid, totalTaxReport)
-        val f1Declar = createDeclarF1(uuid, totalTaxReport)
-
-        xmlGeneratorService.saveXmlToFile(mainDeclar, mainFilePath)
-        xmlGeneratorService.saveXmlToFile(f1Declar, f1FilePath)
-
-    }
-
-    private fun createDeclar(uuid: UUID, totalTaxReport: TotalTaxReport): Declar {
+    private fun createDeclar(uuid: UUID, totalDividendReport: TotalDividendReport): Declar {
         val declar = Declar()
 
-        val totalMilitaryTax5 = totalTaxReport.totalMilitaryTax5
+        val totalMilitaryTax5 = totalDividendReport.totalMilitaryTax5
 
 
         val head = DeclarHead(
@@ -191,9 +273,9 @@ class TaxService(
             htin = "", // IPN
             hz = "1",
             hzy = "2025",
-            r0104g3 = totalTaxReport.totalUaBrutto, // Dividends totalUaBrutto
-            r0104g6 = totalTaxReport.totalTax9, // Tax Dividends
-            r0104g7 = totalTaxReport.totalMilitaryTax5,
+            r0104g3 = totalDividendReport.totalUaBrutto, // Dividends totalUaBrutto
+            r0104g6 = totalDividendReport.totalTax9, // Tax Dividends
+            r0104g7 = totalDividendReport.totalMilitaryTax5,
             r0108g3 = BigDecimal.ZERO, // Інвест прибуток від акцій до податків
             r0108g6 = BigDecimal.ZERO, // до сплати податку від акцій
             r0108g7 = BigDecimal.ZERO, // військовий збір з акцій
@@ -213,7 +295,7 @@ class TaxService(
         return declar
     }
 
-    private fun createDeclarF1(uuid: UUID, totalTaxReport: TotalTaxReport): Declar {
+    private fun createDeclarF1(uuid: UUID, totalDividendReport: TotalDividendReport): Declar {
 
         val declar = Declar()
 

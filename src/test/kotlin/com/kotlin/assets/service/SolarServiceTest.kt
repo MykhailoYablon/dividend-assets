@@ -1,7 +1,7 @@
 package com.kotlin.assets.service
 
-import com.kotlin.assets.entity.SolarFileReport
-import com.kotlin.assets.entity.SolarReport
+import com.kotlin.assets.entity.solar.SolarFileReport
+import com.kotlin.assets.entity.solar.SolarReport
 import com.kotlin.assets.repository.SolarFileReportRepository
 import com.kotlin.assets.repository.SolarRepository
 import org.apache.poi.ss.usermodel.WorkbookFactory

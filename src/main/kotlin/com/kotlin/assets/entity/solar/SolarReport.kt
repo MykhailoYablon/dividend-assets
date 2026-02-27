@@ -1,4 +1,4 @@
-package com.kotlin.assets.entity
+package com.kotlin.assets.entity.solar
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity

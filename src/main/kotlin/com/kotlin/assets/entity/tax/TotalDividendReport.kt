@@ -1,4 +1,4 @@
-package com.kotlin.assets.entity
+package com.kotlin.assets.entity.tax
 
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.kotlin.assets.dto.enums.ReportStatus
@@ -7,7 +7,7 @@ import java.math.BigDecimal
 import java.util.function.Consumer
 
 @Entity
-class TotalTaxReport(
+class TotalDividendReport(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
@@ -46,6 +46,6 @@ class TotalTaxReport(
 
     private fun addTaxReport(report: DividendTaxReport) {
         reports.add(report)
-        report.totalTaxReport = this
+        report.totalDividendReport = this
     }
 }

@@ -3,7 +3,7 @@ package com.kotlin.assets.dto.ib
 import java.math.BigDecimal
 import java.time.LocalDate
 
-data class TradeRecord(
+data class IBStockRecord(
     val symbol: String,
     val tradeDate: LocalDate,
     val quantity: Int,

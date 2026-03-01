@@ -36,16 +36,16 @@ class TotalStockReport(
 
     @OneToMany(mappedBy = "totalStockReport", cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
     @JsonManagedReference
-    var reports: MutableList<StockTradeReport> = mutableListOf()
+    var records: MutableList<StockRecord> = mutableListOf()
 
 ) {
-    fun setTaxReports(reports: List<StockTradeReport>) {
-        this.reports.clear()
-        reports.forEach(Consumer { report: StockTradeReport -> this.addTaxReport(report) }) // Add new ones
+    fun setTaxRecords(records: List<StockRecord>) {
+        this.records.clear()
+        records.forEach(Consumer { report: StockRecord -> this.addTaxRecord(report) }) // Add new ones
     }
 
-    private fun addTaxReport(report: StockTradeReport) {
-        reports.add(report)
-        report.totalStockReport = this
+    private fun addTaxRecord(record: StockRecord) {
+        records.add(record)
+        record.totalStockReport = this
     }
 }

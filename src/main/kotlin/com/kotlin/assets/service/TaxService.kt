@@ -2,12 +2,12 @@ package com.kotlin.assets.service
 
 import com.kotlin.assets.dto.enums.FileType
 import com.kotlin.assets.dto.enums.ReportStatus
-import com.kotlin.assets.dto.ib.DividendRecord
-import com.kotlin.assets.dto.ib.TradeRecord
+import com.kotlin.assets.dto.ib.IBDividendRecord
+import com.kotlin.assets.dto.ib.IBStockRecord
 import com.kotlin.assets.dto.tax.TotalTaxReportDto
 import com.kotlin.assets.dto.tax.xml.*
-import com.kotlin.assets.entity.tax.DividendTaxReport
-import com.kotlin.assets.entity.tax.StockTradeReport
+import com.kotlin.assets.entity.tax.DividendRecord
+import com.kotlin.assets.entity.tax.StockRecord
 import com.kotlin.assets.entity.tax.TotalDividendReport
 import com.kotlin.assets.entity.tax.TotalStockReport
 import com.kotlin.assets.mapper.TaxReportMapper
@@ -65,12 +65,12 @@ class TaxService(
         }
 
         // Calculate Stock Tax
-        val taxCalculations = calculateFifoTaxes(year, trades, rateCache)
+        val totalStockReport = calculateStockTaxes(year, trades, rateCache)
         // Save Stock Tax
         // Calculate Dividend Tax
-        val taxReport = calculateDividendTax(dividends, rateCache, isMilitary, year)
+        val totalDividendReport = calculateDividendTaxes(dividends, rateCache, isMilitary, year)
 
-        return taxReportMapper.toDto(taxReport)
+        return taxReportMapper.toTotalReportDto(totalStockReport, totalDividendReport)
     }
 
     fun generateXmlTaxReport(year: Short) {
@@ -92,15 +92,15 @@ class TaxService(
 
     }
 
-    private fun calculateDividendTax(
-        dividends: List<DividendRecord>,
+    private fun calculateDividendTaxes(
+        dividends: List<IBDividendRecord>,
         rateCache: Map<LocalDate, BigDecimal>,
         isMilitary: Boolean,
         year: Short
     ): TotalDividendReport {
         var totalAmount = BigDecimal.ZERO
         var totalUaBrutto = BigDecimal.ZERO
-        val reports: MutableList<DividendTaxReport> = mutableListOf()
+        val reports: MutableList<DividendRecord> = mutableListOf()
 
         dividends.forEach { dividend ->
             val dividendAmount = dividend.amount
@@ -120,7 +120,7 @@ class TaxService(
             val taxSum: BigDecimal = if (isMilitary) tax9 else tax9.add(militaryTax5)
 
             reports.add(
-                DividendTaxReport(
+                DividendRecord(
                     symbol = dividend.symbol,
                     date = dividendDate,
                     amount = dividendAmount,
@@ -151,16 +151,16 @@ class TaxService(
             this.totalTax9 = totalTax9
             this.totalMilitaryTax5 = totalMilitaryTax5
             this.totalTaxSum = totalTaxSum
-            this.setTaxReports(reports)
+            this.setTaxRecords(reports)
         }
 
         val taxReport = totalDividendReportRepository.save(totalDividendReport)
         return taxReport
     }
 
-    private fun calculateFifoTaxes(year: Short,
-        trades: Map<String, List<TradeRecord>>,
-        rateCache: Map<LocalDate, BigDecimal>
+    private fun calculateStockTaxes(year: Short,
+                                    trades: Map<String, List<IBStockRecord>>,
+                                    rateCache: Map<LocalDate, BigDecimal>
     ): TotalStockReport {
 
         var totalBrutto = BigDecimal.ZERO
@@ -201,14 +201,14 @@ class TaxService(
 //                        .minus(ibCommission)
 
                     val netProfitUah = sellPriceUah - totalBuyPriceUAH
-                    val tax18 = sellPriceUah.multiply(BigDecimal(0.18)).setScale(scale, roundingMode)
-                    val militaryTax5 = sellPriceUah.multiply(BigDecimal(0.05)).setScale(scale, roundingMode)
+                    val tax18 = round(netProfitUah.multiply(BigDecimal("0.18")))
+                    val militaryTax5 = round(netProfitUah.multiply(BigDecimal("0.05")))
 
                     totalBrutto += netProfitUah
                     totalTax18 += tax18
                     totalMilitaryTax5 += militaryTax5
 
-                    StockTradeReport(
+                    StockRecord(
                         symbol = symbol,
                         sellQuantity = sell.quantity,
                         buyPriceUah = totalBuyPriceUAH,
@@ -240,7 +240,7 @@ class TaxService(
             this.totalTax18 = totalTax18
             this.totalMilitaryTax5 = totalMilitaryTax5
             this.totalTaxSum = totalTaxSum
-            this.setTaxReports(reports)
+            this.setTaxRecords(reports)
         }
 
         return totalStockReportRepository.save(totalStockReport)

@@ -12,7 +12,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 @Entity
-class StockTradeReport(
+class StockRecord(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,

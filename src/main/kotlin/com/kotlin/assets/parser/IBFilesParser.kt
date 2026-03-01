@@ -1,8 +1,8 @@
 package com.kotlin.assets.parser
 
 import com.kotlin.assets.dto.enums.SectionType
-import com.kotlin.assets.dto.ib.DividendRecord
-import com.kotlin.assets.dto.ib.TradeRecord
+import com.kotlin.assets.dto.ib.IBDividendRecord
+import com.kotlin.assets.dto.ib.IBStockRecord
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import org.w3c.dom.Element
@@ -18,9 +18,9 @@ class IBFilesParser {
 
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd, HH:mm:ss")
 
-    fun parseIbCsv(file: MultipartFile): Pair<Map<String, List<TradeRecord>>, MutableList<DividendRecord>> {
-        val tradeRecords = mutableListOf<TradeRecord>()
-        val dividendRecords = mutableListOf<DividendRecord>()
+    fun parseIbCsv(file: MultipartFile): Pair<Map<String, List<IBStockRecord>>, MutableList<IBDividendRecord>> {
+        val IBStockRecords = mutableListOf<IBStockRecord>()
+        val IBDividendRecords = mutableListOf<IBDividendRecord>()
 
         var currentHeaders: Map<String, Int> = emptyMap()
         var currentType: SectionType = SectionType.UNKNOWN
@@ -44,8 +44,8 @@ class IBFilesParser {
                 when (currentType) {
                     SectionType.TRADES -> runCatching {
                         if (col("AssetClass") == "STK")
-                            tradeRecords.add(
-                                TradeRecord(
+                            IBStockRecords.add(
+                                IBStockRecord(
                                     symbol = col("Symbol"),
                                     tradeDate = LocalDate.parse(
                                         col("TradeDate"),
@@ -63,8 +63,8 @@ class IBFilesParser {
 
                     SectionType.DIVIDENDS -> runCatching {
                         if (col("Type") == "Dividends")
-                            dividendRecords.add(
-                                DividendRecord(
+                            IBDividendRecords.add(
+                                IBDividendRecord(
                                     symbol = col("Symbol"),
                                     date = LocalDate.parse(
                                         col("Date/Time").substringBefore(";"),
@@ -82,15 +82,15 @@ class IBFilesParser {
             }
         }
 
-        val closedTrades = tradeRecords
+        val closedTrades = IBStockRecords
             .sortedBy { it.tradeDate }
             .groupBy { it.symbol }
             .filter { (_, trades) -> trades.any { it.buySell == "SELL" } }
 
-        return Pair(closedTrades, dividendRecords)
+        return Pair(closedTrades, IBDividendRecords)
     }
 
-    fun parseIbXml(file: MultipartFile): Pair<Map<String, List<TradeRecord>>, List<DividendRecord>> {
+    fun parseIbXml(file: MultipartFile): Pair<Map<String, List<IBStockRecord>>, List<IBDividendRecord>> {
         val doc = DocumentBuilderFactory.newInstance()
             .newDocumentBuilder()
             .parse(file.inputStream)
@@ -99,12 +99,12 @@ class IBFilesParser {
 
         fun Node.attr(name: String) = (this as Element).getAttribute(name)
 
-        val tradeRecords = doc.getElementsByTagName("Trade")
+        val IBStockRecords = doc.getElementsByTagName("Trade")
             .toList()
             .filter { node -> node.attr("assetCategory") == "STK" }
             .mapNotNull { node ->
                 runCatching {
-                    TradeRecord(
+                    IBStockRecord(
                         symbol = node.attr("symbol"),
                         tradeDate = LocalDate.parse(
                             node.attr("tradeDate"),
@@ -120,12 +120,12 @@ class IBFilesParser {
                 }.getOrNull()
             }
 
-        val dividendRecords = doc.getElementsByTagName("CashTransaction")
+        val IBDividendRecords = doc.getElementsByTagName("CashTransaction")
             .toList()
             .filter { node -> node.attr("type") == "Dividends" }
             .mapNotNull { node ->
                 runCatching {
-                    DividendRecord(
+                    IBDividendRecord(
                         symbol = node.attr("symbol"),
                         date = LocalDate.parse(
                             node.attr("dateTime").substringBefore(";"),
@@ -138,12 +138,12 @@ class IBFilesParser {
                 }.getOrNull()
             }
 
-        val closedTrades = tradeRecords
+        val closedTrades = IBStockRecords
             .sortedBy { it.tradeDate }
             .groupBy { it.symbol }
             .filter { (_, trades) -> trades.any { it.buySell == "SELL" } }
 
-        return Pair(closedTrades, dividendRecords)
+        return Pair(closedTrades, IBDividendRecords)
     }
 
     private fun detectSectionType(headers: Map<String, Int>): SectionType = when {

@@ -3,7 +3,7 @@ package com.kotlin.assets.dto.tax
 import java.math.BigDecimal
 import java.time.LocalDate
 
-data class DividendTaxReportDto(
+data class DividendRecordDto(
     var symbol: String,
     var date: LocalDate,
     var amount: BigDecimal,

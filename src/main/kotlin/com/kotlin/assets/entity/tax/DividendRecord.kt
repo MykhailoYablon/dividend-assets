@@ -5,7 +5,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 @Entity
-class DividendTaxReport(
+class DividendRecord(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

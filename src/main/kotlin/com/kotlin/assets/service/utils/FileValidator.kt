@@ -1,4 +1,4 @@
-package com.kotlin.assets.service
+package com.kotlin.assets.service.utils
 
 import com.kotlin.assets.dto.enums.FileType
 import org.apache.tika.Tika

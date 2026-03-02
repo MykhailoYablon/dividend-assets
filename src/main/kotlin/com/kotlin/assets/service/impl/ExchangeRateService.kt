@@ -1,4 +1,4 @@
-package com.kotlin.assets.service
+package com.kotlin.assets.service.impl
 
 import com.kotlin.assets.entity.ExchangeRate
 import com.kotlin.assets.repository.ExchangeRateRepository
@@ -19,6 +19,7 @@ class ExchangeRateService(
         return exchangeRate.nbuRate
     }
 
+    @Transactional
     private fun fetchAndSaveRate(date: LocalDate): ExchangeRate {
         val exchangeRate: BigDecimal = nbuDataClient.getExchangeRate(date)
         return saveExchangeRate(date, exchangeRate)

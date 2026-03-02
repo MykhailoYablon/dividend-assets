@@ -1,4 +1,4 @@
-package com.kotlin.assets.service
+package com.kotlin.assets.service.impl
 
 import com.kotlin.assets.dto.green.MonthSummary
 import com.kotlin.assets.dto.green.Statistics

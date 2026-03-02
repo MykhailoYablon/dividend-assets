@@ -2,8 +2,8 @@ package com.kotlin.assets.controller.mvc
 
 import com.kotlin.assets.dto.MyUserDetails
 import com.kotlin.assets.dto.enums.FileType
-import com.kotlin.assets.service.FileValidator
-import com.kotlin.assets.service.SolarService
+import com.kotlin.assets.service.utils.FileValidator
+import com.kotlin.assets.service.impl.SolarService
 import org.springframework.http.MediaType
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller

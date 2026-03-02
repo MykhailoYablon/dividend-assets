@@ -1,4 +1,4 @@
-package com.kotlin.assets.service
+package com.kotlin.assets.service.impl
 
 import com.kotlin.assets.dto.tax.xml.Declar
 import com.kotlin.assets.dto.tax.xml.DeclarBody

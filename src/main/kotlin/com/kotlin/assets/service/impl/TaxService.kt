@@ -1,11 +1,10 @@
-package com.kotlin.assets.service
+package com.kotlin.assets.service.impl
 
 import com.kotlin.assets.dto.enums.FileType
 import com.kotlin.assets.dto.enums.ReportStatus
 import com.kotlin.assets.dto.ib.IBDividendRecord
 import com.kotlin.assets.dto.ib.IBStockRecord
 import com.kotlin.assets.dto.tax.TotalTaxReportDto
-import com.kotlin.assets.dto.tax.xml.*
 import com.kotlin.assets.entity.tax.DividendRecord
 import com.kotlin.assets.entity.tax.StockRecord
 import com.kotlin.assets.entity.tax.TotalDividendReport
@@ -20,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.ui.Model
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
-import java.io.File
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -32,13 +30,11 @@ class TaxService(
     private val exchangeRateService: ExchangeRateService,
     private val totalDividendReportRepository: TotalDividendReportRepository,
     private val totalStockReportRepository: TotalStockReportRepository,
-    private val taxReportMapper: TaxReportMapper,
-    private val xmlGeneratorService: XmlGeneratorService
+    private val taxReportMapper: TaxReportMapper
 ) {
 
     val scale = 2
     val roundingMode: RoundingMode = RoundingMode.HALF_DOWN
-    val exportDir = "exports"
 
     @Transactional
     fun getTaxReports(model: Model, year: Short, userId: Long): TotalTaxReportDto {
@@ -83,29 +79,6 @@ class TaxService(
         val totalDividendReport = calculateDividendTaxes(dividends, rateCache, isMilitary, year)
 
         return taxReportMapper.toTotalReportDto(totalStockReport, totalDividendReport)
-    }
-
-    @Transactional
-    fun generateXmlTaxReport(year: Short) {
-        val totalStockReport = totalStockReportRepository.findByYear(year)
-            .orElseThrow { throw ResponseStatusException(HttpStatus.NOT_FOUND) }
-
-        val totalDividendReport = totalDividendReportRepository.findByYear(year)
-            .orElseThrow { throw ResponseStatusException(HttpStatus.NOT_FOUND) }
-
-        val uuid = UUID.randomUUID()
-        val mainFilename = String.format("F0100214_Zvit_%s.xml", uuid)
-        val f1Filename = String.format("F0121214_DodatokF1_%s.xml", uuid)
-
-        val mainFilePath: String = exportDir + File.separator + mainFilename
-        val f1FilePath: String = exportDir + File.separator + f1Filename
-
-        val mainDeclar = createDeclar(uuid, totalDividendReport)
-        val f1Declar = createDeclarF1(uuid, totalDividendReport)
-
-        xmlGeneratorService.saveXmlToFile(mainDeclar, mainFilePath)
-        xmlGeneratorService.saveXmlToFile(f1Declar, f1FilePath)
-
     }
 
     private fun calculateDividendTaxes(
@@ -174,16 +147,19 @@ class TaxService(
         return taxReport
     }
 
-    private fun calculateStockTaxes(year: Short,
-                                    trades: Map<String, List<IBStockRecord>>,
-                                    rateCache: Map<LocalDate, BigDecimal>
+    private fun calculateStockTaxes(
+        year: Short,
+        trades: Map<String, List<IBStockRecord>>,
+        rateCache: Map<LocalDate, BigDecimal>
     ): TotalStockReport {
 
+        var totalBuy = BigDecimal.ZERO
+        var totalSell = BigDecimal.ZERO
         var totalBrutto = BigDecimal.ZERO
         var totalTax18 = BigDecimal.ZERO
         var totalMilitaryTax5 = BigDecimal.ZERO
 
-        val reports =  trades.flatMap { (symbol, records) ->
+        val reports = trades.flatMap { (symbol, records) ->
             val buyQueue = ArrayDeque(
                 records
                     .filter { it.buySell == "BUY" }
@@ -206,20 +182,23 @@ class TaxService(
                         buyQueue.removeFirst() ?: error("Not enough BUY trades in queue for symbol $symbol")
                     }
 
-                    val totalBuyPriceUAH = buyEntries.sumOf { (_, costBasisUah, _) -> costBasisUah }
+                    val totalBuyPriceUAH = round(buyEntries.sumOf { (_, costBasisUah, _) -> costBasisUah })
+
 
                     // For reporting purposes - take from first and last buy if spread across multiple
                     val buyDates = buyEntries.map { (buyDate, _, _) -> buyDate }
                     val buyRates = buyEntries.map { (_, _, buyRate) -> buyRate }
 
-                    val ibCommission = sell.ibCommission * sellExchangeRate
-                    val sellPriceUah = sellExchangeRate.multiply(sell.tradePrice).setScale(scale, roundingMode)
-//                        .minus(ibCommission)
+                    val ibCommission = round(sell.ibCommission.abs().multiply(sellExchangeRate))
+                    val sellPriceUah = round(sellExchangeRate.multiply(sell.tradePrice))
+                        .minus(ibCommission)
 
-                    val netProfitUah = sellPriceUah - totalBuyPriceUAH
+                    val netProfitUah = round(sellPriceUah - totalBuyPriceUAH)
                     val tax18 = round(netProfitUah.multiply(BigDecimal("0.18")))
                     val militaryTax5 = round(netProfitUah.multiply(BigDecimal("0.05")))
 
+                    totalBuy += totalBuyPriceUAH
+                    totalSell += sellPriceUah
                     totalBrutto += netProfitUah
                     totalTax18 += tax18
                     totalMilitaryTax5 += militaryTax5
@@ -251,8 +230,10 @@ class TaxService(
             }
         val totalTaxSum = totalTax18 + totalMilitaryTax5
         totalStockReport.apply {
-            this.totalUaBrutto = totalUaNetto.minus(totalTaxSum)
-            this.totalUaNetto = totalUaNetto
+            this.totalBuy = totalBuy
+            this.totalSell = totalSell
+            this.totalUaBrutto = totalBrutto
+            this.totalUaNetto = totalBrutto.minus(totalTaxSum)
             this.totalTax18 = totalTax18
             this.totalMilitaryTax5 = totalMilitaryTax5
             this.totalTaxSum = totalTaxSum
@@ -266,144 +247,4 @@ class TaxService(
         return value.setScale(2, RoundingMode.HALF_UP)
     }
 
-    private fun createDeclar(uuid: UUID, totalDividendReport: TotalDividendReport): Declar {
-        val declar = Declar()
-
-        val totalMilitaryTax5 = totalDividendReport.totalMilitaryTax5
-
-
-        val head = DeclarHead(
-            tin = "", // IPN
-            cDoc = "F01",
-            cDocSub = "002",
-            cDocVer = "11",
-            cDocType = "0",
-            cDocCnt = "1",
-            cReg = "0",
-            cRaj = "15",
-            periodMonth = "12",
-            periodType = "5",
-            periodYear = "2025",
-            cStiOrig = "915",
-            cDocStan = "1",
-            dFill = "16012026" // Дата заповнення
-        )
-
-        // Create linked docs
-        val doc = Doc(
-            num = "1",
-            type = "1",
-            cDoc = "F01",
-            cDocSub = "212",
-            cDocVer = "11",
-            cDocType = "1",
-            cDocCnt = "1",
-            cDocStan = "1",
-            filename = "F0121214_DodatokF1_$uuid.xml"
-        )
-
-        head.linkedDocs = LinkedDocs(docs = mutableListOf(doc))
-        declar.declarHead = head
-
-        // DECLARBODY
-        val body = DeclarBody(
-            h01 = "1",
-            h03 = "1",
-            h05 = "1",
-            hbos = "Test", // Name
-            hcity = "Test", // City
-            hd1 = "1",
-            hfill = "16012026", // Date of fill
-            hname = "Test Test", // User name
-            hsti = "ДПС", // ГОЛОВНЕ УПРАВЛІННЯ ДПС
-            hstreet = "Stree",
-            htin = "", // IPN
-            hz = "1",
-            hzy = "2025",
-            r0104g3 = totalDividendReport.totalUaBrutto, // Dividends totalUaBrutto
-            r0104g6 = totalDividendReport.totalTax9, // Tax Dividends
-            r0104g7 = totalDividendReport.totalMilitaryTax5,
-            r0108g3 = BigDecimal.ZERO, // Інвест прибуток від акцій до податків
-            r0108g6 = BigDecimal.ZERO, // до сплати податку від акцій
-            r0108g7 = BigDecimal.ZERO, // військовий збір з акцій
-            r01010g2s = "Інші проценти",
-            r010g3 = BigDecimal.ZERO, // Всього прибуток
-            r010g6 = BigDecimal.ZERO, //всього податок акції + дивіденди
-            r010g7 = BigDecimal.ZERO, // всього військовий збір
-            r012g3 = BigDecimal.ZERO, // Всього прибуток
-            r013g3 = BigDecimal.ZERO, //всього податок акції + дивіденди
-            r018g3 = BigDecimal.ZERO, //Сплачений податок у джерела 347.67
-            r0201g3 = BigDecimal.ZERO, // ?
-            r0211g3 = BigDecimal.ZERO // всього військовий збір
-        )
-
-        declar.setDeclarBody(body)
-
-        return declar
-    }
-
-    private fun createDeclarF1(uuid: UUID, totalDividendReport: TotalDividendReport): Declar {
-
-        val declar = Declar()
-
-        // DECLARHEAD
-        val head = DeclarHead(
-            tin = "", // IPN
-            cDoc = "F01",
-            cDocSub = "212",
-            cDocVer = "11",
-            cDocType = "1",
-            cDocCnt = "1",
-            cReg = "0",
-            cRaj = "15",
-            periodMonth = "12",
-            periodType = "5",
-            periodYear = "2025",
-            cStiOrig = "915",
-            cDocStan = "1",
-            dFill = "16012026" // Date of fill
-        )
-
-        // Create linked docs
-        val doc = Doc(
-            num = "1",
-            type = "2",
-            cDoc = "F01",
-            cDocSub = "002",
-            cDocVer = "11",
-            cDocType = "0",
-            cDocCnt = "1",
-            cDocStan = "1",
-            filename = "F0100214_Zvit_$uuid.xml"
-        )
-
-        head.linkedDocs = LinkedDocs(docs = mutableListOf(doc))
-        declar.declarHead = head
-
-        // DECLARBODY F1
-        val body = DeclarBodyF1(
-            hbos = "Test Test",
-            htin = "", // IPN
-            hz = "1",
-            hzy = "2025", // year
-            r001g4 = "32130.56", // Продаж ?
-            r001g5 = "31196.75", // Купівля ?
-            r001g6 = "933.81", // Інвест прибуток 933.81
-            r003g6 = "933.81", // Інвест прибуток 933.81
-            r004g6 = "168.09", // Усього до сплати податку 168.09
-            r005g6 = "46.69", // до сплати військового збору
-            r031g6 = "933.81",
-            r042g6 = "168.09",
-            r052g6 = "46.69"
-        )
-
-        // Add table rows
-        body.addTableRow("1", "4", "GOOGL 1шт.", "6903.66", "6259.61", "644.05")
-        body.addTableRow("2", "4", "CRM 1шт.", "11047.23", "11016.3", "30.93")
-        body.addTableRow("3", "4", "VTI 1шт.", "14179.67", "13920.84", "258.83")
-
-        declar.setDeclarBody(body)
-
-        return declar
-    }
 }

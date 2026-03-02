@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+    <changeSet id="2" author="mihayabko">
+        <renameColumn tableName="total_stock_report"
+                      oldColumnName="total_ua_brutto"
+                      newColumnName="total_ua_netto"
+                      columnDataType="decimal(19,2)"/>
+
+        <renameColumn tableName="total_stock_report"
+                      oldColumnName="total_profit"
+                      newColumnName="total_ua_brutto"
+                      columnDataType="decimal(19,2)"/>
+
+        <renameColumn tableName="total_stock_report"
+                      oldColumnName="total_tax_9"
+                      newColumnName="total_tax_18"
+                      columnDataType="decimal(19,2)"/>
+
+        <addColumn tableName="your_table_name">
+            <column name="total_buy" type="decimal(19,2)" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_sell" type="decimal(19,2)" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

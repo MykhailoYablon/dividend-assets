@@ -1,4 +1,4 @@
-package com.kotlin.assets.service
+package com.kotlin.assets.service.utils
 
 import com.kotlin.assets.configuration.jwt.JwtUtil
 import jakarta.servlet.http.HttpServletRequest

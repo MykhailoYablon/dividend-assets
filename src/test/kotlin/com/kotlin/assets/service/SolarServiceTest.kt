@@ -4,6 +4,8 @@ import com.kotlin.assets.entity.solar.SolarFileReport
 import com.kotlin.assets.entity.solar.SolarReport
 import com.kotlin.assets.repository.SolarFileReportRepository
 import com.kotlin.assets.repository.SolarRepository
+import com.kotlin.assets.service.impl.ExchangeRateService
+import com.kotlin.assets.service.impl.SolarService
 import org.apache.poi.ss.usermodel.WorkbookFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.kotlinx.dataframe.api.toDataFrame

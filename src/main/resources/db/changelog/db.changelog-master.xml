@@ -6,5 +6,6 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
 
     <include file="db/changelog/migrations/init_01.xml"/>
+    <include file="db/changelog/migrations/total-stock-buy-sell.xml"/>
 
 </databaseChangeLog>

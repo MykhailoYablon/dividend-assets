@@ -5,6 +5,7 @@ import jakarta.xml.bind.annotation.XmlAccessorType
 import jakarta.xml.bind.annotation.XmlAttribute
 import jakarta.xml.bind.annotation.XmlElement
 import jakarta.xml.bind.annotation.XmlRootElement
+import java.math.BigDecimal
 
 @XmlRootElement(name = "DECLARBODY")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -26,31 +27,31 @@ data class DeclarBodyF1(
     var hzy: String? = null,
 
     @XmlElement(name = "R001G4")
-    var r001g4: String? = null,
+    var r001g4: BigDecimal = BigDecimal.ZERO,
 
     @XmlElement(name = "R001G5")
-    var r001g5: String? = null,
+    var r001g5: BigDecimal = BigDecimal.ZERO,
 
     @XmlElement(name = "R001G6")
-    var r001g6: String? = null,
+    var r001g6: BigDecimal = BigDecimal.ZERO,
 
     @XmlElement(name = "R003G6")
-    var r003g6: String? = null,
+    var r003g6: BigDecimal = BigDecimal.ZERO,
 
     @XmlElement(name = "R004G6")
-    var r004g6: String? = null,
+    var r004g6: BigDecimal = BigDecimal.ZERO,
 
     @XmlElement(name = "R005G6")
-    var r005g6: String? = null,
+    var r005g6: BigDecimal = BigDecimal.ZERO,
 
     @XmlElement(name = "R031G6")
-    var r031g6: String? = null,
+    var r031g6: BigDecimal = BigDecimal.ZERO,
 
     @XmlElement(name = "R042G6")
-    var r042g6: String? = null,
+    var r042g6: BigDecimal = BigDecimal.ZERO,
 
     @XmlElement(name = "R052G6")
-    var r052g6: String? = null,
+    var r052g6: BigDecimal = BigDecimal.ZERO,
 
     @XmlElement(name = "T1RXXXXG2")
     var t1rxxxxg2: MutableList<RowNumField> = mutableListOf(),

@@ -1,8 +1,9 @@
 package com.kotlin.assets.controller
 
 import com.kotlin.assets.dto.tax.TotalTaxReportDto
-import com.kotlin.assets.service.FileValidator
-import com.kotlin.assets.service.TaxService
+import com.kotlin.assets.service.impl.DeclarationGenerationService
+import com.kotlin.assets.service.utils.FileValidator
+import com.kotlin.assets.service.impl.TaxService
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
@@ -12,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile
 @RequestMapping("/taxes")
 class TaxController(
     val taxService: TaxService,
+    val declarationGenerationService: DeclarationGenerationService,
     val fileValidator: FileValidator
 ) {
 
@@ -31,6 +33,6 @@ class TaxController(
 
     @GetMapping("/declaration")
     fun generateXmlReports(@RequestParam year: Short) {
-        taxService.generateXmlTaxReport(year)
+        declarationGenerationService.generateXmlTaxReport(year)
     }
 }

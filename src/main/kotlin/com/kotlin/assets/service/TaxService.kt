@@ -17,6 +17,7 @@ import com.kotlin.assets.repository.TotalStockReportRepository
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.ui.Model
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import java.io.File
@@ -38,6 +39,17 @@ class TaxService(
     val scale = 2
     val roundingMode: RoundingMode = RoundingMode.HALF_DOWN
     val exportDir = "exports"
+
+    @Transactional
+    fun getTaxReports(model: Model, year: Short, userId: Long): TotalTaxReportDto {
+        val totalStockReport = totalStockReportRepository.findByYear(year)
+            .orElseThrow { throw ResponseStatusException(HttpStatus.NOT_FOUND) }
+
+        val totalDividendReport = totalDividendReportRepository.findByYear(year)
+            .orElseThrow { throw ResponseStatusException(HttpStatus.NOT_FOUND) }
+
+        return taxReportMapper.toTotalReportDto(totalStockReport, totalDividendReport)
+    }
 
     @Transactional
     fun calculateTax(
@@ -73,8 +85,12 @@ class TaxService(
         return taxReportMapper.toTotalReportDto(totalStockReport, totalDividendReport)
     }
 
+    @Transactional
     fun generateXmlTaxReport(year: Short) {
-        val totalTaxReport = totalDividendReportRepository.findByYear(year)
+        val totalStockReport = totalStockReportRepository.findByYear(year)
+            .orElseThrow { throw ResponseStatusException(HttpStatus.NOT_FOUND) }
+
+        val totalDividendReport = totalDividendReportRepository.findByYear(year)
             .orElseThrow { throw ResponseStatusException(HttpStatus.NOT_FOUND) }
 
         val uuid = UUID.randomUUID()
@@ -84,8 +100,8 @@ class TaxService(
         val mainFilePath: String = exportDir + File.separator + mainFilename
         val f1FilePath: String = exportDir + File.separator + f1Filename
 
-        val mainDeclar = createDeclar(uuid, totalTaxReport)
-        val f1Declar = createDeclarF1(uuid, totalTaxReport)
+        val mainDeclar = createDeclar(uuid, totalDividendReport)
+        val f1Declar = createDeclarF1(uuid, totalDividendReport)
 
         xmlGeneratorService.saveXmlToFile(mainDeclar, mainFilePath)
         xmlGeneratorService.saveXmlToFile(f1Declar, f1FilePath)

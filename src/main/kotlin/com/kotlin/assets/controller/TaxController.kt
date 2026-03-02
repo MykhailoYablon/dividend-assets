@@ -1,8 +1,6 @@
 package com.kotlin.assets.controller
 
-import com.kotlin.assets.dto.enums.FileType
 import com.kotlin.assets.dto.tax.TotalTaxReportDto
-import com.kotlin.assets.parser.IBFilesParser
 import com.kotlin.assets.service.FileValidator
 import com.kotlin.assets.service.TaxService
 import org.springframework.http.HttpStatus
@@ -14,7 +12,6 @@ import org.springframework.web.multipart.MultipartFile
 @RequestMapping("/taxes")
 class TaxController(
     val taxService: TaxService,
-    val fileParser: IBFilesParser,
     val fileValidator: FileValidator
 ) {
 
@@ -32,7 +29,7 @@ class TaxController(
         return taxService.calculateTax(year, file, fileType, isMilitary)
     }
 
-    @GetMapping("/reports")
+    @GetMapping("/declaration")
     fun generateXmlReports(@RequestParam year: Short) {
         taxService.generateXmlTaxReport(year)
     }

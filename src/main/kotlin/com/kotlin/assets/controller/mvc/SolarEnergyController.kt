@@ -1,4 +1,4 @@
-package com.kotlin.assets.controller
+package com.kotlin.assets.controller.mvc
 
 import com.kotlin.assets.dto.MyUserDetails
 import com.kotlin.assets.dto.enums.FileType
@@ -20,7 +20,7 @@ class SolarEnergyController(
     val fileValidator: FileValidator
 ) {
 
-    @GetMapping("/")
+    @GetMapping("/solar")
     fun getAllReports(
         model: Model,
         @AuthenticationPrincipal user: MyUserDetails

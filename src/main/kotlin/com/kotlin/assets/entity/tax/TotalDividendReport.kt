@@ -1,4 +1,4 @@
-package com.kotlin.assets.entity
+package com.kotlin.assets.entity.tax
 
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.kotlin.assets.dto.enums.ReportStatus
@@ -7,7 +7,7 @@ import java.math.BigDecimal
 import java.util.function.Consumer
 
 @Entity
-class TotalTaxReport(
+class TotalDividendReport(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
@@ -34,18 +34,18 @@ class TotalTaxReport(
     @Column(name = "total_tax_sum", nullable = false, precision = 19, scale = 2)
     var totalTaxSum: BigDecimal = BigDecimal.ZERO,
 
-    @OneToMany(mappedBy = "totalTaxReport", cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(mappedBy = "totalDividendReport", cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
     @JsonManagedReference
-    var reports: MutableList<DividendTaxReport> = mutableListOf()
+    var records: MutableList<DividendRecord> = mutableListOf()
 
 ) {
-    fun setTaxReports(reports: MutableList<DividendTaxReport>) {
-        this.reports.clear()
-        reports.forEach(Consumer { report: DividendTaxReport -> this.addTaxReport(report) }) // Add new ones
+    fun setTaxRecords(records: MutableList<DividendRecord>) {
+        this.records.clear()
+        records.forEach(Consumer { report: DividendRecord -> this.addTaxRecord(report) }) // Add new ones
     }
 
-    private fun addTaxReport(report: DividendTaxReport) {
-        reports.add(report)
-        report.totalTaxReport = this
+    private fun addTaxRecord(record: DividendRecord) {
+        records.add(record)
+        record.totalDividendReport = this
     }
 }

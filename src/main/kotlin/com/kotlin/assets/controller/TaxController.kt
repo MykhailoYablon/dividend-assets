@@ -1,6 +1,7 @@
 package com.kotlin.assets.controller
 
-import com.kotlin.assets.dto.TotalTaxReportDto
+import com.kotlin.assets.dto.tax.TotalTaxReportDto
+import com.kotlin.assets.service.FileValidator
 import com.kotlin.assets.service.TaxService
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -9,7 +10,10 @@ import org.springframework.web.multipart.MultipartFile
 
 @RestController
 @RequestMapping("/taxes")
-class TaxController(val taxService: TaxService) {
+class TaxController(
+    val taxService: TaxService,
+    val fileValidator: FileValidator
+) {
 
     @PostMapping(
         value = ["/dividends"],
@@ -17,14 +21,15 @@ class TaxController(val taxService: TaxService) {
     )
     @ResponseStatus(HttpStatus.CREATED)
     fun calculateDividendTax(
-        @RequestParam year: Short,
-        @RequestPart("file") file: MultipartFile,
-        @RequestParam isMilitary: Boolean
+        @RequestParam(required = true) year: Short,
+        @RequestPart("file", required = true) file: MultipartFile,
+        @RequestParam(required = false) isMilitary: Boolean
     ): TotalTaxReportDto {
-        return taxService.calculateDividendTax(year, file, isMilitary)
+        val fileType = fileValidator.validate(file)
+        return taxService.calculateTax(year, file, fileType, isMilitary)
     }
 
-    @GetMapping("/reports")
+    @GetMapping("/declaration")
     fun generateXmlReports(@RequestParam year: Short) {
         taxService.generateXmlTaxReport(year)
     }

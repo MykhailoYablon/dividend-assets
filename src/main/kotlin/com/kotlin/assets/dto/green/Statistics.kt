@@ -1,4 +1,4 @@
-package com.kotlin.assets.dto
+package com.kotlin.assets.dto.green
 
 import java.math.BigDecimal
 import java.time.Month

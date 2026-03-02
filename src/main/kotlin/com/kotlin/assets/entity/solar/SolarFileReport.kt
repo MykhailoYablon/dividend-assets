@@ -1,4 +1,4 @@
-package com.kotlin.assets.entity
+package com.kotlin.assets.entity.solar
 
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import jakarta.persistence.*

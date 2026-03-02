@@ -1,18 +1,18 @@
-package com.kotlin.assets.entity
+package com.kotlin.assets.entity.tax
 
 import jakarta.persistence.*
 import java.math.BigDecimal
 import java.time.LocalDate
 
 @Entity
-class DividendTaxReport(
+class DividendRecord(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
-    @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "total_tax_report_id", nullable = false)
-    var totalTaxReport: TotalTaxReport? = null,
+    @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "total_dividend_report_id", nullable = false)
+    var totalDividendReport: TotalDividendReport? = null,
 
     @Column(nullable = false)
     var symbol: String,

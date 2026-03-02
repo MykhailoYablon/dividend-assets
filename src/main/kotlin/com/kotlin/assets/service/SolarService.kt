@@ -1,10 +1,10 @@
 package com.kotlin.assets.service
 
-import com.kotlin.assets.dto.MonthSummary
-import com.kotlin.assets.dto.Statistics
-import com.kotlin.assets.dto.YearSummary
-import com.kotlin.assets.entity.SolarFileReport
-import com.kotlin.assets.entity.SolarReport
+import com.kotlin.assets.dto.green.MonthSummary
+import com.kotlin.assets.dto.green.Statistics
+import com.kotlin.assets.dto.green.YearSummary
+import com.kotlin.assets.entity.solar.SolarFileReport
+import com.kotlin.assets.entity.solar.SolarReport
 import com.kotlin.assets.repository.SolarFileReportRepository
 import com.kotlin.assets.repository.SolarRepository
 import mu.KotlinLogging

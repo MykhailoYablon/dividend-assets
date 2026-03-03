@@ -1,154 +1,118 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.w3.org/1999/xhtml">
-<head>
-  <title>Solar Savings</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" th:href="@{/css/solar.css}"/>
-  <link rel="stylesheet" th:href="@{/css/main.css}"/>
+
+<head th:replace="~{fragments/layout :: head('Solar Income Reports')}">
 </head>
+
 <body>
-<div class="sun-orb"></div>
-<div class="panel-deco"></div>
+<!-- Sidebar -->
+<div th:replace="~{fragments/layout :: sidebar('solar')}"></div>
 
-<!-- ══════════ SIDEBAR ══════════ -->
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <div class="logo-mark">₴</div>
-    <div class="logo-label">UA<span>Tax</span> Calc</div>
-  </div>
+<!-- Main -->
+<div class="main-wrap">
 
-  <button class="sidebar-toggle" id="sidebarToggle" title="Toggle sidebar">
-    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-  </button>
+  <div th:replace="~{fragments/layout :: topbar('Reports', 'Solar Income')}"></div>
 
-  <nav class="nav-section">
-    <div class="nav-label">Reports</div>
+  <main class="page">
 
-    <a href="/tax-reports" class="nav-item active" data-tip="Stock &amp; Dividend">
-      <div class="nav-icon">
-        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+  <div class="sun-orb"></div>
+  <div class="panel-deco"></div>
+
+  <div class="page" sec:authorize="isAuthenticated()">
+    <header>
+      <div class="logo-row">
+        <div class="logo-icon">☀️</div>
+        <span class="logo-text">SolarSave · Energy Analytics</span>
       </div>
-      <span class="nav-text">Stock / Dividend</span>
-      <span class="nav-badge">CSV · XML</span>
-    </a>
+      <h1>Your <em>Green</em><br>Energy Savings</h1>
+      <p class="subtitle">Upload your statement to track solar returns and analyse your clean energy cashflow.</p>
+    </header>
 
-    <a href="/solar" class="nav-item" data-tip="Solar Income">
-      <div class="nav-icon">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <div class="stats-row">
+      <div class="stat-card">
+        <p class="stat-label">CO₂ Offset</p>
+        <p class="stat-value">4.2 t</p>
+        <span class="stat-icon">🌿</span>
       </div>
-      <span class="nav-text">Solar Income</span>
-      <span class="nav-badge">XLSX</span>
-    </a>
-  </nav>
-
-  <div class="sidebar-footer">
-    <div class="sidebar-footer-inner">
-      <div class="avatar">U</div>
-      <div class="avatar-info">
-        <div class="avatar-name">User</div>
-        <div class="avatar-role">Tax Reporter</div>
+      <div class="stat-card">
+        <p class="stat-label">kWh Generated</p>
+        <p class="stat-value">6,840</p>
+        <span class="stat-icon">⚡</span>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">Panel Efficiency</p>
+        <p class="stat-value">94.3%</p>
+        <span class="stat-icon">🔆</span>
       </div>
     </div>
-  </div>
-</aside>
 
-<div class="page" sec:authorize="isAuthenticated()">
-  <header>
-    <div class="logo-row">
-      <div class="logo-icon">☀️</div>
-      <span class="logo-text">SolarSave · Energy Analytics</span>
-    </div>
-    <h1>Your <em>Green</em><br>Energy Savings</h1>
-    <p class="subtitle">Upload your statement to track solar returns and analyse your clean energy cashflow.</p>
-  </header>
-
-  <div class="logout-bar" sec:authorize="isAuthenticated()">
-    <span class="logout-user">🌿 <span sec:authentication="name"></span></span>
-    <form id="logout-form" th:action="@{/logout}" method="post">
-      <button type="submit" class="logout-btn">Sign out</button>
-    </form>
-  </div>
-
-  <div class="stats-row">
-    <div class="stat-card">
-      <p class="stat-label">CO₂ Offset</p>
-      <p class="stat-value">4.2 t</p>
-      <span class="stat-icon">🌿</span>
-    </div>
-    <div class="stat-card">
-      <p class="stat-label">kWh Generated</p>
-      <p class="stat-value">6,840</p>
-      <span class="stat-icon">⚡</span>
-    </div>
-    <div class="stat-card">
-      <p class="stat-label">Panel Efficiency</p>
-      <p class="stat-value">94.3%</p>
-      <span class="stat-icon">🔆</span>
-    </div>
-  </div>
-
-  <div class="message" th:if="${message}">
-    <span th:text="${message}"></span>
-  </div>
-
-  <div class="divider">transactions</div>
-
-  <div class="results">
-    <div class="results-header">
-      <h2>Transaction Records</h2>
-      <div class="total-pill" th:if="${total}" th:text="${total}"></div>
-      <div class="total-pill" th:if="${usTotal}" th:text="${usTotal}"></div>
-      <a class="stats-btn" th:href="@{/statistics}">📊 Statistics</a>
+    <div class="message" th:if="${message}">
+      <span th:text="${message}"></span>
     </div>
 
-    <div class="table-wrap" th:if="${not #lists.isEmpty(reports)}">
-      <table>
-        <thead>
-        <tr>
-          <th>Date</th>
-          <th style="text-align:center">Amount</th>
-          <th style="text-align:center">Exchange Rate</th>
-          <th style="text-align:center">USD Value</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="report : ${reports}">
-          <td th:text="${report.date}">—</td>
-          <td th:text="${report.amount} + '₴'" style="text-align:center">—</td>
-          <td th:text="${report.exchangeRate}" style="text-align:center">—</td>
-          <td th:text="${report.usdValue} + '$'" style="text-align:center">—</td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
+    <div class="divider">transactions</div>
 
-    <div class="empty-state" th:if="${#lists.isEmpty(reports)}">
-      <span class="empty-icon">🌱</span>
-      <p>No records yet.<br>Upload a statement above to see your solar savings.</p>
-    </div>
-  </div>
-
-  <div class="upload-card">
-    <p class="section-label">Import Statement</p>
-    <form method="POST" th:action="@{/green}" enctype="multipart/form-data" id="upload-form">
-      <div class="drop-zone" id="drop-zone">
-        <input type="file" name="file" required id="file-input" accept=".xlsx,.xls,.csv"/>
-        <span class="drop-icon">🌤️</span>
-        <p class="drop-label">
-          Drop your bank export here or <strong>browse files</strong><br>
-          <span style="font-size:12px; opacity:0.7;">.xlsx · .xls · .csv</span>
-        </p>
+    <div class="results">
+      <div class="results-header">
+        <h2>Transaction Records</h2>
+        <div class="total-pill" th:if="${total}" th:text="${total}"></div>
+        <div class="total-pill" th:if="${usTotal}" th:text="${usTotal}"></div>
+        <a class="stats-btn" th:href="@{/statistics}">📊 Statistics</a>
       </div>
-      <p id="file-name"></p>
-      <button type="submit" class="submit-btn">⚡ Analyse Savings</button>
-    </form>
+
+      <div class="table-wrap" th:if="${not #lists.isEmpty(reports)}">
+        <table>
+          <thead>
+          <tr>
+            <th>Date</th>
+            <th style="text-align:center">Amount</th>
+            <th style="text-align:center">Exchange Rate</th>
+            <th style="text-align:center">USD Value</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="report : ${reports}">
+            <td th:text="${report.date}">—</td>
+            <td th:text="${report.amount} + '₴'" style="text-align:center">—</td>
+            <td th:text="${report.exchangeRate}" style="text-align:center">—</td>
+            <td th:text="${report.usdValue} + '$'" style="text-align:center">—</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="empty-state" th:if="${#lists.isEmpty(reports)}">
+        <span class="empty-icon">🌱</span>
+        <p>No records yet.<br>Upload a statement above to see your solar savings.</p>
+      </div>
+    </div>
+
+    <div class="upload-card">
+      <p class="section-label">Import Statement</p>
+      <form method="POST" th:action="@{/green}" enctype="multipart/form-data" id="upload-form">
+        <div class="drop-zone" id="drop-zone">
+          <input type="file" name="file" required id="file-input" accept=".xlsx,.xls,.csv"/>
+          <span class="drop-icon">🌤️</span>
+          <p class="drop-label">
+            Drop your bank export here or <strong>browse files</strong><br>
+            <span style="font-size:12px; opacity:0.7;">.xlsx · .xls · .csv</span>
+          </p>
+        </div>
+        <p id="file-name"></p>
+        <button type="submit" class="submit-btn">⚡ Analyse Savings</button>
+      </form>
+    </div>
   </div>
+  </main>
 
+  <div th:replace="~{fragments/layout :: footer}"></div>
 
+</div><!-- /.main-wrap -->
 
-</div>
+<!-- Sidebar toggle script -->
+<th:block th:replace="~{fragments/layout :: sidebarScript}"/>
+
 
 <script>
   const input = document.getElementById('file-input');

@@ -1,16 +1,3 @@
-// ── Sidebar toggle ──
-const sidebar = document.getElementById('sidebar');
-const toggleBtn = document.getElementById('sidebarToggle');
-
-toggleBtn.addEventListener('click', () => {
-    sidebar.classList.toggle('collapsed');
-    localStorage.setItem('sidebar-collapsed', sidebar.classList.contains('collapsed'));
-});
-
-if (localStorage.getItem('sidebar-collapsed') === 'true') {
-    sidebar.classList.add('collapsed');
-}
-
 // ── File upload ──
 const dropZone     = document.getElementById('dropZone');
 const fileInput    = document.getElementById('fileInput');

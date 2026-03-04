@@ -167,7 +167,7 @@ class TaxService(
                     .flatMap { buy ->
                         val rate = rateCache[buy.tradeDate] ?: BigDecimal.ONE
                         List(buy.quantity) {
-                            Triple(buy.tradeDate, buy.costBasis / BigDecimal(buy.quantity) * rate, rate)
+                            Triple(buy.tradeDate, round(buy.costBasis / BigDecimal(buy.quantity) * rate), rate)
                         }
                     }
             )

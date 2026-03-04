@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+
+<!--
+  ╔══════════════════════════════════════════════════════════╗
+  ║  fragments/layout.html                                   ║
+  ║  Contains:                                               ║
+  ║    · head      — <head> tag with fonts + global CSS      ║
+  ║    · sidebar   — collapsible left nav (param: activePage)║
+  ║    · topbar    — breadcrumb top bar  (param: pageTitle)  ║
+  ║    · footer    — shared footer                           ║
+  ╚══════════════════════════════════════════════════════════╝
+-->
+
+<!-- ═══════════════════════════════════════
+     FRAGMENT: head
+     Usage: <th:block th:replace="~{fragments/layout :: head('Page Title')}"/>
+     ═══════════════════════════════════════ -->
+<head th:fragment="head(pageTitle)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle} + ' — UA Tax Calculator'">UA Tax Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}"/>
+    <link rel="stylesheet" th:href="@{/css/layout.css}"/>
+</head>
+
+
+<!-- ═══════════════════════════════════════
+     FRAGMENT: sidebar
+     Usage: <div th:replace="~{fragments/layout :: sidebar('stock')}"></div>
+            <div th:replace="~{fragments/layout :: sidebar('solar')}"></div>
+     ═══════════════════════════════════════ -->
+<aside class="sidebar" id="sidebar" th:fragment="sidebar(activePage)">
+    <div class="sidebar-logo">
+        <div class="logo-mark">₴</div>
+        <div class="logo-label">UA<span>Tax</span> Calc</div>
+    </div>
+
+    <button class="sidebar-toggle" id="sidebarToggle" title="Toggle sidebar">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+
+    <nav class="nav-section">
+        <div class="nav-label">Reports</div>
+
+        <a href="/"
+           th:classappend="${activePage == 'stock'} ? ' active'"
+           class="nav-item"
+           data-tip="Stock &amp; Dividend">
+            <div class="nav-icon">
+                <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <span class="nav-text">Stock / Dividend</span>
+            <span class="nav-badge">CSV · XML</span>
+        </a>
+
+        <a href="/solar"
+           th:classappend="${activePage == 'solar'} ? ' active'"
+           class="nav-item"
+           data-tip="Solar Income">
+            <div class="nav-icon">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            </div>
+            <span class="nav-text">Solar Income</span>
+            <span class="nav-badge">XLSX</span>
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="sidebar-footer-inner">
+            <div class="avatar">U</div>
+            <div class="avatar-info">
+                <div class="avatar-name">User</div>
+                <div class="avatar-role">Tax Reporter</div>
+            </div>
+        </div>
+    </div>
+</aside>
+
+
+<!-- ═══════════════════════════════════════
+     FRAGMENT: topbar
+     Usage: <div th:replace="~{fragments/layout :: topbar('Section', 'Page Title')}"></div>
+     ═══════════════════════════════════════ -->
+<div class="topbar" th:fragment="topbar(section, pageTitle)">
+    <div class="breadcrumb">
+        <span th:text="${section}">Reports</span>
+        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        <strong th:text="${pageTitle}">Page</strong>
+    </div>
+
+<!--    <div class="topbar-chip">-->
+<!--        <span class="dot"></span>-->
+<!--        System ready-->
+<!--    </div>-->
+
+    <div class="logout-bar" sec:authorize="isAuthenticated()">
+        <span class="logout-user">🌿 <span sec:authentication="name"></span></span>
+        <form id="logout-form" th:action="@{/logout}" method="post">
+            <button type="submit" class="logout-btn">Sign out</button>
+        </form>
+    </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════
+     FRAGMENT: footer
+     Usage: <div th:replace="~{fragments/layout :: footer}"></div>
+     ═══════════════════════════════════════ -->
+<footer th:fragment="footer">
+    UA TAX CALCULATOR &nbsp;·&nbsp; FOR INFORMATIONAL PURPOSES ONLY &nbsp;·&nbsp; CONSULT A CERTIFIED TAX ADVISOR
+</footer>
+
+
+<!-- ═══════════════════════════════════════
+     FRAGMENT: sidebarScript
+     Usage: <th:block th:replace="~{fragments/layout :: sidebarScript}"/>
+     Place just before </body> on every page
+     ═══════════════════════════════════════ -->
+<th:block th:fragment="sidebarScript">
+    <script>
+        (function () {
+            const sidebar   = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('sidebarToggle');
+            if (!sidebar || !toggleBtn) return;
+
+            // Restore collapsed state from localStorage
+            if (localStorage.getItem('sidebar-collapsed') === 'true') {
+                sidebar.classList.add('collapsed');
+            }
+
+            toggleBtn.addEventListener('click', function () {
+                sidebar.classList.toggle('collapsed');
+                localStorage.setItem('sidebar-collapsed', sidebar.classList.contains('collapsed'));
+            });
+        })();
+    </script>
+</th:block>
+
+</html>

@@ -18,7 +18,7 @@ class IBFilesParser {
 
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd, HH:mm:ss")
 
-    fun parseIbCsv(file: MultipartFile): Pair<Map<String, List<IBStockRecord>>, MutableList<IBDividendRecord>> {
+    fun parseIbCsv(file: MultipartFile): Pair<Map<String, List<IBStockRecord>>, List<IBDividendRecord>> {
         val IBStockRecords = mutableListOf<IBStockRecord>()
         val IBDividendRecords = mutableListOf<IBDividendRecord>()
 

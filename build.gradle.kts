@@ -59,6 +59,7 @@ dependencies {
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testImplementation("org.mockito.kotlin:mockito-kotlin:6.2.3")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	testImplementation("org.springframework:spring-test")
 
 	kapt("org.mapstruct:mapstruct-processor:1.6.3")
 

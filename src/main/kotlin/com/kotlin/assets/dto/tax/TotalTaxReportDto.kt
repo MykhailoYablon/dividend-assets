@@ -4,8 +4,8 @@ import com.kotlin.assets.dto.enums.ReportStatus
 import java.math.BigDecimal
 
 data class TotalTaxReportDto(
-    var totalStockReport: TotalStockReportDto,
-    var totalDividendReport: TotalDividendReportDto,
+    var totalStockReport: TotalStockReportDto? = null,
+    var totalDividendReport: TotalDividendReportDto? = null,
 )
 
 data class TotalStockReportDto(

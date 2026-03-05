@@ -6,5 +6,6 @@ spring:
 Upda  jpa:
     show-sql: false
 jwt:
+  cookie.enabled: true
   secret: ${JWT_SECRET}
   expiration: 3600000

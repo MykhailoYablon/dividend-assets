@@ -96,7 +96,7 @@ class TaxServiceTest {
         whenever(totalDividendReportRepository.findByYear(year)).thenReturn(Optional.of(dividendReport))
         whenever(taxReportMapper.toTotalReportDto(stockReport, dividendReport)).thenReturn(expectedDto)
 
-        val result = taxService.getTaxReports(mock(), year, userId)
+        val result = taxService.getTaxReports(year, userId)
 
         assertEquals(expectedDto, result)
     }
@@ -106,7 +106,7 @@ class TaxServiceTest {
         whenever(totalStockReportRepository.findByYear(year)).thenReturn(Optional.empty())
 
         val ex = assertThrows<ResponseStatusException> {
-            taxService.getTaxReports(mock(), year, userId)
+            taxService.getTaxReports(year, userId)
         }
         assertEquals(HttpStatus.NOT_FOUND, ex.statusCode)
     }
@@ -119,7 +119,7 @@ class TaxServiceTest {
         whenever(totalDividendReportRepository.findByYear(year)).thenReturn(Optional.empty())
 
         val ex = assertThrows<ResponseStatusException> {
-            taxService.getTaxReports(mock(), year, userId)
+            taxService.getTaxReports(year, userId)
         }
         assertEquals(HttpStatus.NOT_FOUND, ex.statusCode)
     }

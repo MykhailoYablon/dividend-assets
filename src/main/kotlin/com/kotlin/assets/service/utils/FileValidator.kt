@@ -11,22 +11,28 @@ class FileValidator {
     private val tika = Tika()
 
     fun validate(file: MultipartFile): FileType {
-        val filenameType = file.originalFilename
-            ?.substringAfterLast(".")
-            ?.lowercase()
+        // Always verify actual content with Tika — never trust the filename extension alone
+        val detectedMime = tika.detect(file.bytes, file.originalFilename)
+        val typeFromContent = runCatching { FileType.fromMimeType(detectedMime) }.getOrNull()
 
-        // First try to detect from filename extension
-        val typeFromExtension = when (filenameType) {
+        // Cross-check extension against detected content type
+        val filenameExt = file.originalFilename?.substringAfterLast(".")?.lowercase()
+        val typeFromExtension = when (filenameExt) {
             "xml"  -> FileType.XML
             "csv"  -> FileType.CSV
             "xlsx" -> FileType.XLSX
             else   -> null
         }
 
-        if (typeFromExtension != null) return typeFromExtension
+        if (typeFromContent == null && typeFromExtension == null) {
+            throw IllegalArgumentException("Unsupported file type: $detectedMime")
+        }
 
-        // Fall back to content sniffing with Tika
-        val detectedMime = tika.detect(file.bytes, file.originalFilename)
-        return FileType.fromMimeType(detectedMime)
+        // If both are determined, they must agree
+        if (typeFromContent != null && typeFromExtension != null && typeFromContent != typeFromExtension) {
+            throw IllegalArgumentException("File content ($detectedMime) does not match extension (.$filenameExt)")
+        }
+
+        return typeFromContent ?: typeFromExtension!!
     }
 }

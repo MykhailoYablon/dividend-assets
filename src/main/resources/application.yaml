@@ -34,5 +34,6 @@ server:
   port: 8081
 
 jwt:
+  cookie.enabled: false
   secret: ${JWT_SECRET}
   expiration: 3600000

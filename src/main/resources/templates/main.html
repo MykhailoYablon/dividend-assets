@@ -24,12 +24,27 @@
             <p class="page-sub">Supports CSV and XML broker exports. We'll calculate your dividend and stock income taxes according to current Ukrainian tax legislation.</p>
         </div>
 
+        <!-- Year selector -->
+        <div class="year-nav">
+            <span class="year-nav-label">Tax year</span>
+            <div class="year-nav-tabs">
+                <a th:each="y : ${#numbers.sequence(2020, 2025)}"
+                   th:href="@{/(year=${y})}"
+                   th:text="${y}"
+                   th:classappend="${y == year} ? ' active' : ''"
+                   class="year-tab"></a>
+            </div>
+        </div>
+
+        <!-- Upload card -->
         <div class="card">
             <div class="server-error" th:if="${error}" th:text="${error}"></div>
 
-            <div class="card-title">Select file</div>
+            <div class="card-title">Upload report for <span th:text="${year}">2025</span></div>
 
             <form id="uploadForm" th:action="@{/calculate}" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="year" th:value="${year}">
+
                 <div class="drop-zone" id="dropZone">
                     <input type="file" name="file" id="fileInput" accept=".csv,.xml">
                     <div class="drop-icon-wrap">
@@ -76,7 +91,155 @@
             </form>
         </div>
 
-        <div class="stats-row">
+        <!-- Results section -->
+        <!-- Results section -->
+        <div th:if="${taxReports != null}" class="tax-results">
+
+            <!-- Summary cards -->
+            <div class="results-summary">
+                <!-- Stock summary -->
+                <div class="summary-card" th:if="${taxReports.totalStockReport != null}">
+                    <div class="summary-card-header">
+                        <span class="summary-card-title">Stock Gains</span>
+                        <span class="summary-badge" th:text="${taxReports.totalStockReport.status}">CALCULATED</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Net profit (UAH)</span>
+                        <strong th:text="${taxReports.totalStockReport.totalUaBrutto}">—</strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Net after tax (UAH)</span>
+                        <strong th:text="${taxReports.totalStockReport.totalUaNetto}">—</strong>
+                    </div>
+                    <div class="summary-divider"></div>
+                    <div class="summary-row tax">
+                        <span>Tax 18%</span>
+                        <strong th:text="${taxReports.totalStockReport.totalTax18}">—</strong>
+                    </div>
+                    <div class="summary-row tax">
+                        <span>Military 1.5%</span>
+                        <strong th:text="${taxReports.totalStockReport.totalMilitaryTax5}">—</strong>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total Tax</span>
+                        <strong th:text="${taxReports.totalStockReport.totalTaxSum}">—</strong>
+                    </div>
+                </div>
+
+                <!-- Dividend summary -->
+                <div class="summary-card" th:if="${taxReports.totalDividendReport != null}">
+                    <div class="summary-card-header">
+                        <span class="summary-card-title">Dividends</span>
+                        <span class="summary-badge" th:text="${taxReports.totalDividendReport.status}">CALCULATED</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Total (USD)</span>
+                        <strong th:text="${taxReports.totalDividendReport.totalAmount}">—</strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Total (UAH)</span>
+                        <strong th:text="${taxReports.totalDividendReport.totalUaBrutto}">—</strong>
+                    </div>
+                    <div class="summary-divider"></div>
+                    <div class="summary-row tax">
+                        <span>Tax 9%</span>
+                        <strong th:text="${taxReports.totalDividendReport.totalTax9}">—</strong>
+                    </div>
+                    <div class="summary-row tax">
+                        <span>Military 1.5%</span>
+                        <strong th:text="${taxReports.totalDividendReport.totalMilitaryTax5}">—</strong>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total Tax</span>
+                        <strong th:text="${taxReports.totalDividendReport.totalTaxSum}">—</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stock records table -->
+            <div th:if="${taxReports.totalStockReport != null and !#lists.isEmpty(taxReports.totalStockReport.stockRecords)}" class="report-table-wrap">
+                <div class="report-table-title">Stock Trade Records</div>
+                <div class="table-scroll">
+                    <table class="report-table">
+                        <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Qty</th>
+                            <th>Buy Date</th>
+                            <th>Sell Date</th>
+                            <th>Buy Rate</th>
+                            <th>Sell Rate</th>
+                            <th>Buy UAH</th>
+                            <th>Sell UAH</th>
+                            <th>Profit UAH</th>
+                            <th>Tax 18%</th>
+                            <th>Military</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="r : ${taxReports.totalStockReport.stockRecords}">
+                            <td th:text="${r.symbol}">—</td>
+                            <td th:text="${r.sellQuantity}">—</td>
+                            <td th:text="${r.buyDate}">—</td>
+                            <td th:text="${r.sellDate}">—</td>
+                            <td th:text="${r.buyExchangeRate}">—</td>
+                            <td th:text="${r.sellExchangeRate}">—</td>
+                            <td th:text="${r.buyPriceUah}">—</td>
+                            <td th:text="${r.sellPriceUah}">—</td>
+                            <td class="num" th:text="${r.netProfitUah}">—</td>
+                            <td class="num" th:text="${r.tax18}">—</td>
+                            <td class="num" th:text="${r.militaryTax5}">—</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Dividend records table -->
+            <div th:if="${taxReports.totalDividendReport != null and !#lists.isEmpty(taxReports.totalDividendReport.dividendRecords)}" class="report-table-wrap">
+                <div class="report-table-title">Dividend Records</div>
+                <div class="table-scroll">
+                    <table class="report-table">
+                        <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Date</th>
+                            <th>Amount (USD)</th>
+                            <th>NBU Rate</th>
+                            <th>UAH Brutto</th>
+                            <th>Tax 9%</th>
+                            <th>Military</th>
+                            <th>Total Tax</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="r : ${taxReports.totalDividendReport.dividendRecords}">
+                            <td th:text="${r.symbol}">—</td>
+                            <td th:text="${r.date}">—</td>
+                            <td th:text="${r.amount}">—</td>
+                            <td th:text="${r.nbuRate}">—</td>
+                            <td th:text="${r.uaBrutto}">—</td>
+                            <td class="num" th:text="${r.tax9}">—</td>
+                            <td class="num" th:text="${r.militaryTax5}">—</td>
+                            <td class="num" th:text="${r.taxSum}">—</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Generate Declaration action -->
+            <div class="results-actions">
+                <a th:href="@{/declaration(year=${year})}" class="btn-generate-decl">
+                    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                    Generate Declaration
+                </a>
+            </div>
+
+        </div>
+
+        <!-- No report placeholder -->
+        <div th:if="${taxReports == null}" class="stats-row">
             <div class="stat-card">
                 <div class="stat-label">Tax Rate · Dividends</div>
                 <div class="stat-value blue">9%</div>

@@ -1,125 +1,98 @@
-.sun-orb {
-    position: fixed;
-    top: -60px;
-    right: 80px;
-    width: 200px;
-    height: 200px;
-    border-radius: 50%;
-    background: radial-gradient(circle, #ffe066 30%, #f5a623 70%, transparent 100%);
-    box-shadow: 0 0 60px 20px rgba(245,166,35,0.25), 0 0 120px 60px rgba(245,166,35,0.10);
-    animation: pulse-sun 4s ease-in-out infinite;
-    z-index: 0;
+/* ── CSS variables (solar/green theme) ── */
+:root {
+    --sky:       #e8f4f0;
+    --earth:     #1a2e1f;
+    --leaf:      #2d5a27;
+    --sun:       #f5a623;
+    --sun-light: #fff3d6;
+    --green:     #3db554;
+    --green-dim: rgba(61,181,84,0.10);
+    --panel:     #ffffff;
+    --border:    #d4e8d0;
+    --muted:     #6b8f6e;
+    --radius:    14px;
 }
 
-@keyframes pulse-sun {
-    0%, 100% { box-shadow: 0 0 60px 20px rgba(245,166,35,0.25), 0 0 120px 60px rgba(245,166,35,0.10); }
-    50%       { box-shadow: 0 0 80px 30px rgba(245,166,35,0.35), 0 0 160px 80px rgba(245,166,35,0.15); }
-}
-
-.panel-deco {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    height: 90px;
-    background:
-        repeating-linear-gradient(90deg,  rgba(45,90,39,0.07) 0px, rgba(45,90,39,0.07) 1px, transparent 1px, transparent 48px),
-        repeating-linear-gradient(180deg, rgba(45,90,39,0.07) 0px, rgba(45,90,39,0.07) 1px, transparent 1px, transparent 28px);
-    z-index: 0;
-}
-
+/* ── Page container ── */
 .page {
+    display: block;
     position: relative;
     z-index: 1;
-    max-width: 880px;
+    max-width: 1080px;
     margin: 0 auto;
-    padding: 56px 32px 100px;
+    padding: 2rem 2rem 4rem;
 }
 
-/* Header */
-header {
-    margin-bottom: 52px;
-    animation: fadeUp 0.7s ease both;
-}
-
-.logo-row {
+/* ── Solar summary banner ── */
+.solar-banner {
+    background: linear-gradient(135deg, var(--leaf) 0%, var(--green) 100%);
+    border-radius: var(--radius);
+    padding: 28px 36px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 28px;
-}
-
-.logo-icon {
-    width: 44px; height: 44px;
-    background: var(--sun);
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px;
-    box-shadow: 0 4px 16px rgba(245,166,35,0.35);
-}
-
-.logo-text {
-    font-size: 13px; font-weight: 600;
-    color: var(--leaf);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-}
-
-h1 {
-    font-size: clamp(2.2rem, 5.5vw, 3.6rem);
-    font-weight: 800;
-    line-height: 1.08;
-    letter-spacing: -0.03em;
-    color: var(--earth);
-}
-
-h1 em { font-style: normal; color: var(--green); }
-
-.subtitle {
-    margin-top: 14px;
-    font-size: 15px; color: var(--muted); font-weight: 300;
-    max-width: 420px; line-height: 1.6;
-}
-
-/* Stats */
-.stats-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    justify-content: space-between;
     gap: 16px;
-    margin-bottom: 40px;
-    animation: fadeUp 0.7s 0.1s ease both;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+    box-shadow: 0 8px 32px rgba(45,90,39,0.22);
+    animation: fadeUp 0.6s ease both;
+    position: relative;
+    overflow: hidden;
 }
 
-.stat-card {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px 24px;
-    position: relative; overflow: hidden;
-    box-shadow: 0 2px 16px rgba(45,90,39,0.05);
-}
-
-.stat-card::after {
-    content: '';
+.solar-banner::before {
+    content: '☀️';
     position: absolute;
-    bottom: 0; left: 0; right: 0; height: 3px;
-    background: linear-gradient(90deg, var(--green), var(--sun));
+    right: 32px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 64px;
+    opacity: 0.12;
+    pointer-events: none;
 }
 
-.stat-label {
-    font-size: 11px; letter-spacing: 0.14em;
-    text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+.solar-banner-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 8px;
 }
 
-.stat-value {
-    font-family: 'Space Mono', monospace;
-    font-size: 1.5rem; font-weight: 700; color: var(--earth);
+.solar-banner-values {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+    flex-wrap: wrap;
 }
 
-.stat-icon {
-    position: absolute; top: 18px; right: 18px;
-    font-size: 22px; opacity: 0.18;
+.solar-banner-value {
+    font-family: 'Volja', monospace;
+    font-size: clamp(1.3rem, 2.5vw, 2rem);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
 }
 
-/* Message */
+.solar-banner-value + .solar-banner-value {
+    font-size: clamp(1rem, 1.8vw, 1.4rem);
+    color: rgba(255,255,255,0.75);
+}
+
+.solar-banner-meta {
+    text-align: right;
+    font-size: 13px;
+    color: rgba(255,255,255,0.65);
+    line-height: 2;
+}
+
+.solar-banner-meta strong {
+    color: #fff;
+    font-size: 18px;
+    display: block;
+}
+
+/* ── Message ── */
 .message {
     display: flex; align-items: center; gap: 10px;
     background: var(--green-dim);
@@ -133,7 +106,7 @@ h1 em { font-style: normal; color: var(--green); }
 
 .message::before { content: '🌿'; font-size: 16px; }
 
-/* Upload card */
+/* ── Upload card ── */
 .upload-card {
     background: var(--panel);
     border: 1px solid var(--border);
@@ -194,7 +167,7 @@ h1 em { font-style: normal; color: var(--green); }
 .drop-label strong { color: var(--green); font-weight: 600; }
 
 #file-name {
-    font-family: 'Space Mono', monospace;
+    font-family: 'Volja', monospace;
     font-size: 11px; color: var(--green);
     text-align: center; min-height: 18px;
     margin-top: 8px; letter-spacing: 0.04em;
@@ -204,7 +177,7 @@ h1 em { font-style: normal; color: var(--green); }
     width: 100%; padding: 17px;
     background: linear-gradient(135deg, var(--leaf) 0%, var(--green) 100%);
     color: #fff; border: none; border-radius: 10px;
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Volja', sans-serif;
     font-size: 15px; font-weight: 600; letter-spacing: 0.04em;
     cursor: pointer;
     transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
@@ -219,7 +192,7 @@ h1 em { font-style: normal; color: var(--green); }
 
 .submit-btn:active { transform: translateY(0); }
 
-/* Divider */
+/* ── Divider ── */
 .divider {
     display: flex; align-items: center; gap: 16px;
     margin: 40px 0;
@@ -231,7 +204,7 @@ h1 em { font-style: normal; color: var(--green); }
     content: ''; flex: 1; height: 1px; background: var(--border);
 }
 
-/* Results */
+/* ── Results ── */
 .results { animation: fadeUp 0.7s 0.2s ease both; }
 
 .results-header {
@@ -245,19 +218,7 @@ h1 em { font-style: normal; color: var(--green); }
     letter-spacing: -0.02em; color: var(--earth);
 }
 
-.total-pill {
-    background: var(--sun-light);
-    border: 1px solid #f5d07a;
-    border-radius: 100px;
-    padding: 6px 18px;
-    font-family: 'Space Mono', monospace;
-    font-size: 13px; font-weight: 700; color: #8a5e00;
-    display: flex; align-items: center; gap: 8px;
-}
-
-.total-pill::before { content: '☀️'; }
-
-/* Table */
+/* ── Table ── */
 .table-wrap {
     background: var(--panel);
     border: 1px solid var(--border);
@@ -279,7 +240,7 @@ tbody tr { border-bottom: 1px solid #edf7ee; transition: background 0.15s; }
 tbody tr:last-child { border-bottom: none; }
 tbody tr:hover { background: #f7fdf8; }
 
-td { padding: 13px 20px; font-size: 14px; color: var(--text); }
+td { padding: 13px 20px; font-size: 14px; color: var(--earth); }
 
 td:last-child {
     text-align: right;
@@ -287,7 +248,7 @@ td:last-child {
     font-size: 13px; color: var(--leaf); font-weight: 700;
 }
 
-/* Empty state */
+/* ── Empty state ── */
 .empty-state {
     background: var(--panel);
     border: 2px dashed var(--border);
@@ -298,16 +259,7 @@ td:last-child {
 .empty-icon { font-size: 48px; display: block; margin-bottom: 16px; opacity: 0.5; }
 .empty-state p { font-size: 14px; line-height: 1.8; }
 
-@keyframes fadeUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-@media (max-width: 600px) {
-    .stats-row { grid-template-columns: 1fr; }
-    .page { padding: 36px 18px 80px; }
-}
-
+/* ── Statistics link button ── */
 .stats-btn {
     display: inline-flex;
     align-items: center;
@@ -316,7 +268,7 @@ td:last-child {
     background: linear-gradient(135deg, var(--leaf) 0%, var(--green) 100%);
     color: #fff;
     border-radius: 100px;
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Volja', sans-serif;
     font-size: 13px;
     font-weight: 600;
     text-decoration: none;
@@ -328,4 +280,16 @@ td:last-child {
 .stats-btn:hover {
     opacity: 0.9;
     transform: translateY(-1px);
+}
+
+/* ── Animations ── */
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+    .page { padding: 1.5rem 1rem 3rem; }
+    .solar-banner { padding: 20px 24px; }
+    .upload-card { padding: 24px; }
 }

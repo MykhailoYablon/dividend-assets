@@ -37,13 +37,20 @@ class TaxService(
     val roundingMode: RoundingMode = RoundingMode.HALF_DOWN
 
     @Transactional
-    fun getTaxReports(model: Model, year: Short, userId: Long): TotalTaxReportDto {
+    fun getTaxReports(year: Short, userId: Long): TotalTaxReportDto {
         val totalStockReport = totalStockReportRepository.findByYear(year)
             .orElseThrow { throw ResponseStatusException(HttpStatus.NOT_FOUND) }
 
         val totalDividendReport = totalDividendReportRepository.findByYear(year)
             .orElseThrow { throw ResponseStatusException(HttpStatus.NOT_FOUND) }
 
+        return taxReportMapper.toTotalReportDto(totalStockReport, totalDividendReport)
+    }
+
+    @Transactional
+    fun getTaxReportsOrNull(year: Short): TotalTaxReportDto? {
+        val totalStockReport = totalStockReportRepository.findByYear(year).orElse(null) ?: return null
+        val totalDividendReport = totalDividendReportRepository.findByYear(year).orElse(null) ?: return null
         return taxReportMapper.toTotalReportDto(totalStockReport, totalDividendReport)
     }
 

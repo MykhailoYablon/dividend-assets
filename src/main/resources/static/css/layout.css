@@ -18,6 +18,17 @@
     --error:             #d93025;
     --shadow:            0 2px 12px rgba(13,42,74,.08);
     --shadow-lg:         0 8px 32px rgba(13,42,74,.12);
+    --sky:       #e8f4f0;
+    --earth:     #1a2e1f;
+    --leaf:      #2d5a27;
+    --sun:       #f5a623;
+    --sun-light: #fff3d6;
+    --green:     #3db554;
+    --green-dim: rgba(61,181,84,0.10);
+    --panel:     #ffffff;
+    --border:    #d4e8d0;
+    --muted:     #6b8f6e;
+    --radius:    14px;
 }
 
 /* ══ Reset ══ */
@@ -385,45 +396,36 @@ h1 em { font-style: normal; color: var(--accent); }
     to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Logout bar ── add to solar.css ───────────────────────────── */
-
+/* ── Logout bar (topbar inline) ── */
 .logout-bar {
-    position: fixed;
-    top: 20px; right: 24px;
     display: flex;
     align-items: center;
-    gap: 14px;
-    background: rgba(255,255,255,0.72);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--border);
-    border-radius: 100px;
-    padding: 8px 8px 8px 18px;
-    box-shadow: 0 4px 20px rgba(45,90,39,0.10);
-    z-index: 100;
+    gap: 12px;
 }
 
 .logout-user {
-    font-size: 13px;
+    font-size: .8rem;
     font-weight: 600;
-    color: var(--leaf);
-    letter-spacing: 0.02em;
+    color: var(--text-mid);
     white-space: nowrap;
 }
 
 .logout-btn {
-    padding: 8px 18px;
-    background: linear-gradient(135deg, var(--leaf) 0%, var(--green) 100%);
-    color: #fff;
-    border: none;
-    border-radius: 100px;
+    padding: .45rem 1rem;
+    background: var(--surface2);
+    color: var(--text-mid);
+    border: 1px solid var(--border);
+    border-radius: 8px;
     font-family: 'Outfit', sans-serif;
-    font-size: 13px;
+    font-size: .78rem;
     font-weight: 600;
     cursor: pointer;
-    transition: opacity 0.2s, transform 0.15s;
+    transition: background .2s, color .2s, border-color .2s;
     white-space: nowrap;
 }
 
-.logout-btn:hover  { opacity: 0.88; transform: translateY(-1px); }
-.logout-btn:active { transform: translateY(0); }
+.logout-btn:hover {
+    background: var(--accent-light);
+    color: var(--accent);
+    border-color: rgba(21,101,192,.3);
+}

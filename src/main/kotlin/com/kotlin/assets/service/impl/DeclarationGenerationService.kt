@@ -15,11 +15,14 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.UUID
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 @Service
 class DeclarationGenerationService(
@@ -30,6 +33,44 @@ class DeclarationGenerationService(
 ) {
 
     private val exportDir = "exports"
+
+    @Transactional
+    fun generateXmlZip(
+        year: Short,
+        fullName: String,
+        ipn: String,
+        taxName: String,
+        city: String,
+        street: String
+    ): ByteArray {
+        val totalStockReport = totalStockReportRepository.findByYear(year)
+            .orElseThrow { throw ResponseStatusException(HttpStatus.NOT_FOUND) }
+
+        val totalDividendReport = totalDividendReportRepository.findByYear(year)
+            .orElseThrow { throw ResponseStatusException(HttpStatus.NOT_FOUND) }
+
+        val uuid = UUID.randomUUID()
+        val mainFilename = "F0100214_Zvit_$uuid.xml"
+        val f1Filename = "F0121214_DodatokF1_$uuid.xml"
+        val fillDate = LocalDate.now().format(DateTimeFormatter.ofPattern("ddMMyyyy"))
+
+        val mainDeclar = createDeclar(uuid, totalStockReport, totalDividendReport, fillDate, fullName, ipn, taxName, city, street, year)
+        val f1Declar = createDeclarF1(uuid, totalStockReport, fillDate, fullName, ipn, year)
+
+        val mainBytes = xmlGeneratorService.marshalToBytes(mainDeclar)
+        val f1Bytes = xmlGeneratorService.marshalToBytes(f1Declar)
+
+        val baos = ByteArrayOutputStream()
+        ZipOutputStream(baos).use { zip ->
+            zip.putNextEntry(ZipEntry(mainFilename))
+            zip.write(mainBytes)
+            zip.closeEntry()
+            zip.putNextEntry(ZipEntry(f1Filename))
+            zip.write(f1Bytes)
+            zip.closeEntry()
+        }
+        return baos.toByteArray()
+    }
 
     @Transactional
     fun generateXmlTaxReport(year: Short) {
@@ -48,8 +89,10 @@ class DeclarationGenerationService(
 
         val fillDate = LocalDate.now().format(DateTimeFormatter.ofPattern("ddMMyyyy"))
 
-        val mainDeclar = createDeclar(uuid, totalStockReport, totalDividendReport, fillDate)
-        val f1Declar = createDeclarF1(uuid, totalStockReport, fillDate)
+        val mainDeclar = createDeclar(
+            uuid, totalStockReport, totalDividendReport, fillDate,
+            "", "", "", "", "", year)
+        val f1Declar = createDeclarF1(uuid, totalStockReport, fillDate, "", "", year)
 
         xmlGeneratorService.saveXmlToFile(mainDeclar, mainFilePath)
         xmlGeneratorService.saveXmlToFile(f1Declar, f1FilePath)
@@ -60,12 +103,18 @@ class DeclarationGenerationService(
         uuid: UUID,
         totalStockReport: TotalStockReport,
         totalDividendReport: TotalDividendReport,
-        fillDate: String
+        fillDate: String,
+        fullName: String,
+        ipn: String,
+        taxName: String,
+        city: String,
+        street: String,
+        year: Short
     ): Declar {
         val declar = Declar()
 
         val head = DeclarHead(
-            tin = "", // IPN will add later
+            tin = ipn,
             cDoc = "F01",
             cDocSub = "002",
             cDocVer = "11",
@@ -75,10 +124,10 @@ class DeclarationGenerationService(
             cRaj = "15",
             periodMonth = "12",
             periodType = "5",
-            periodYear = "2025",
+            periodYear = year.toString(),
             cStiOrig = "915",
             cDocStan = "1",
-            dFill = fillDate // Дата заповнення
+            dFill = fillDate
         )
 
         // Create linked docs
@@ -102,16 +151,16 @@ class DeclarationGenerationService(
             h01 = "1",
             h03 = "1",
             h05 = "1",
-            hbos = "Test", // Name
-            hcity = "Test", // City
+            hbos = fullName,
+            hcity = city,
             hd1 = "1",
-            hfill = fillDate, // Date of fill
-            hname = "Test Test", // User name
-            hsti = "ДПС", // ГОЛОВНЕ УПРАВЛІННЯ ДПС
-            hstreet = "Stree",
-            htin = "", // IPN
+            hfill = fillDate,
+            hname = fullName,
+            hsti = taxName,
+            hstreet = street,
+            htin = ipn,
             hz = "1",
-            hzy = "2025", //YEAR
+            hzy = year.toString(),
             r0104g3 = totalDividendReport.totalUaBrutto, // Dividends totalUaBrutto
             r0104g6 = totalDividendReport.totalTax9, // Tax Dividends
             r0104g7 = totalDividendReport.totalMilitaryTax5,
@@ -137,14 +186,16 @@ class DeclarationGenerationService(
     private fun createDeclarF1(
         uuid: UUID,
         totalStockReport: TotalStockReport,
-        fillDate: String
+        fillDate: String,
+        fullName: String,
+        ipn: String,
+        year: Short
     ): Declar {
 
         val declar = Declar()
 
-        // DECLARHEAD
         val head = DeclarHead(
-            tin = "", // IPN
+            tin = ipn,
             cDoc = "F01",
             cDocSub = "212",
             cDocVer = "11",
@@ -154,10 +205,10 @@ class DeclarationGenerationService(
             cRaj = "15",
             periodMonth = "12",
             periodType = "5",
-            periodYear = "2025",
+            periodYear = year.toString(),
             cStiOrig = "915",
             cDocStan = "1",
-            dFill = fillDate // Date of fill
+            dFill = fillDate
         )
 
         // Create linked docs
@@ -176,12 +227,11 @@ class DeclarationGenerationService(
         head.linkedDocs = LinkedDocs(docs = mutableListOf(doc))
         declar.declarHead = head
 
-        // DECLARBODY F1
         val body = DeclarBodyF1(
-            hbos = "Test Test",
-            htin = "", // IPN
+            hbos = fullName,
+            htin = ipn,
             hz = "1",
-            hzy = "2025", // year
+            hzy = year.toString(),
             r001g4 = totalStockReport.totalSell, // Продаж
             r001g5 = totalStockReport.totalBuy, // Купівля
             r001g6 = totalStockReport.totalUaBrutto, // Інвест прибуток 933.81

@@ -8,7 +8,6 @@
 <!-- Sidebar -->
 <div th:replace="~{fragments/layout :: sidebar('stock')}"></div>
 
-<!-- ══════════ MAIN ══════════ -->
 <div class="main-wrap">
 
     <div th:replace="~{fragments/layout :: topbar('Reports', 'Income Stock / Dividend')}"></div>
@@ -24,12 +23,80 @@
             <p class="page-sub">Supports CSV and XML broker exports. We'll calculate your dividend and stock income taxes according to current Ukrainian tax legislation.</p>
         </div>
 
+        <!-- Year selector -->
+        <div class="year-nav">
+            <span class="year-nav-label">Tax year</span>
+            <div class="year-nav-tabs">
+                <a th:each="y : ${#numbers.sequence(2020, 2025)}"
+                   th:href="@{/(year=${y})}"
+                   th:text="${y}"
+                   th:classappend="${y == year} ? ' active' : ''"
+                   class="year-tab"></a>
+            </div>
+        </div>
+
+        <!-- ── Records exist: show action cards ── -->
+        <div th:if="${taxReports != null}" class="report-actions">
+
+            <div class="action-cards">
+                <!-- Stocks card -->
+                <a th:href="@{/stocks(year=${year})}" class="action-card" th:if="${taxReports.totalStockReport != null}">
+                    <div class="action-card-icon">
+                        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    </div>
+                    <div class="action-card-body">
+                        <div class="action-card-label">Stocks</div>
+                        <div class="action-card-meta">
+                            <span th:text="${#lists.size(taxReports.totalStockReport.stockRecords)} + ' trades'">— trades</span>
+                            <span class="action-card-sep">·</span>
+                            <span th:text="'₴' + ${taxReports.totalStockReport.totalUaBrutto} + ' profit'">₴— profit</span>
+                        </div>
+                        <div class="action-card-tax" th:text="'Tax due: ₴' + ${taxReports.totalStockReport.totalTaxSum}">Tax due: ₴—</div>
+                    </div>
+                    <svg class="action-card-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                </a>
+
+                <!-- Dividends card -->
+                <a th:href="@{/dividends(year=${year})}" class="action-card" th:if="${taxReports.totalDividendReport != null}">
+                    <div class="action-card-icon">
+                        <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+                    </div>
+                    <div class="action-card-body">
+                        <div class="action-card-label">Dividends</div>
+                        <div class="action-card-meta">
+                            <span th:text="${#lists.size(taxReports.totalDividendReport.dividendRecords)} + ' payments'">— payments</span>
+                            <span class="action-card-sep">·</span>
+                            <span th:text="'$' + ${taxReports.totalDividendReport.totalAmount}">$—</span>
+                        </div>
+                        <div class="action-card-tax" th:text="'Tax due: ₴' + ${taxReports.totalDividendReport.totalTaxSum}">Tax due: ₴—</div>
+                    </div>
+                    <svg class="action-card-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                </a>
+            </div>
+
+            <!-- Generate Declaration -->
+            <div class="results-actions">
+                <a th:href="@{/declaration(year=${year})}" class="btn-generate-decl">
+                    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                    Generate Declaration
+                </a>
+            </div>
+
+            <div class="reload-divider">
+                <span>Reload data for <strong th:text="${year}">2025</strong></span>
+            </div>
+
+        </div>
+
+        <!-- Upload card (always shown) -->
         <div class="card">
             <div class="server-error" th:if="${error}" th:text="${error}"></div>
-
-            <div class="card-title">Select file</div>
+            <div class="card-title" th:if="${taxReports == null}">Upload report for <span th:text="${year}">2025</span></div>
+            <div class="card-title" th:if="${taxReports != null}">Replace existing report</div>
 
             <form id="uploadForm" th:action="@{/calculate}" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="year" th:value="${year}">
+
                 <div class="drop-zone" id="dropZone">
                     <input type="file" name="file" id="fileInput" accept=".csv,.xml">
                     <div class="drop-icon-wrap">
@@ -76,7 +143,8 @@
             </form>
         </div>
 
-        <div class="stats-row">
+        <!-- No-report info cards (only shown when no data) -->
+        <div th:if="${taxReports == null}" class="stats-row">
             <div class="stat-card">
                 <div class="stat-label">Tax Rate · Dividends</div>
                 <div class="stat-value blue">9%</div>
@@ -99,9 +167,7 @@
     <div th:replace="~{fragments/layout :: footer}"></div>
 
 </div>
-<!-- Sidebar toggle script -->
 <th:block th:replace="~{fragments/layout :: sidebarScript}"/>
-<!-- Page-specific upload script -->
 <script th:src="@{/js/main.js}"></script>
 </body>
 </html>

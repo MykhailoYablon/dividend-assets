@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.w3.org/1999/xhtml">
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
-<head th:replace="~{fragments/layout :: head('Solar Income Reports')}">
-</head>
+<head th:replace="~{fragments/layout :: head('Solar Income Reports')}"></head>
 
 <body>
+<link rel="stylesheet" th:href="@{/css/solar.css}"/>
+
 <!-- Sidebar -->
 <div th:replace="~{fragments/layout :: sidebar('solar')}"></div>
 
@@ -16,48 +17,31 @@
 
   <main class="page">
 
-  <div class="sun-orb"></div>
-  <div class="panel-deco"></div>
-
-  <div class="page" sec:authorize="isAuthenticated()">
-    <header>
-      <div class="logo-row">
-        <div class="logo-icon">☀️</div>
-        <span class="logo-text">SolarSave · Energy Analytics</span>
+    <!-- Totals banner (statistics flavour) -->
+    <div class="solar-banner" th:if="${total}">
+      <div>
+        <p class="solar-banner-label">Total Earnings</p>
+        <div class="solar-banner-values">
+          <span class="solar-banner-value" th:text="${total}">0.00₴</span>
+          <span class="solar-banner-value" th:text="${usTotal}">0.00$</span>
+        </div>
       </div>
-      <h1>Your <em>Green</em><br>Energy Savings</h1>
-      <p class="subtitle">Upload your statement to track solar returns and analyse your clean energy cashflow.</p>
-    </header>
-
-    <div class="stats-row">
-      <div class="stat-card">
-        <p class="stat-label">CO₂ Offset</p>
-        <p class="stat-value">4.2 t</p>
-        <span class="stat-icon">🌿</span>
-      </div>
-      <div class="stat-card">
-        <p class="stat-label">kWh Generated</p>
-        <p class="stat-value">6,840</p>
-        <span class="stat-icon">⚡</span>
-      </div>
-      <div class="stat-card">
-        <p class="stat-label">Panel Efficiency</p>
-        <p class="stat-value">94.3%</p>
-        <span class="stat-icon">🔆</span>
+      <div class="solar-banner-meta">
+        <strong th:text="${#lists.size(reports)}">0</strong> records
       </div>
     </div>
 
+    <!-- Status message -->
     <div class="message" th:if="${message}">
       <span th:text="${message}"></span>
     </div>
 
     <div class="divider">transactions</div>
 
+    <!-- Results -->
     <div class="results">
       <div class="results-header">
         <h2>Transaction Records</h2>
-        <div class="total-pill" th:if="${total}" th:text="${total}"></div>
-        <div class="total-pill" th:if="${usTotal}" th:text="${usTotal}"></div>
         <a class="stats-btn" th:href="@{/statistics}">📊 Statistics</a>
       </div>
 
@@ -88,6 +72,7 @@
       </div>
     </div>
 
+    <!-- Upload card -->
     <div class="upload-card">
       <p class="section-label">Import Statement</p>
       <form method="POST" th:action="@{/green}" enctype="multipart/form-data" id="upload-form">
@@ -103,16 +88,13 @@
         <button type="submit" class="submit-btn">⚡ Analyse Savings</button>
       </form>
     </div>
-  </div>
   </main>
 
   <div th:replace="~{fragments/layout :: footer}"></div>
 
 </div><!-- /.main-wrap -->
 
-<!-- Sidebar toggle script -->
 <th:block th:replace="~{fragments/layout :: sidebarScript}"/>
-
 
 <script>
   const input = document.getElementById('file-input');

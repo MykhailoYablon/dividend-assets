@@ -51,7 +51,7 @@ body {
 .page-header {
     font-family: 'Volja', sans-serif;
     width: 100%;
-    max-width: 640px;
+    max-width: 1080px;
     margin-bottom: 2rem;
     animation: fadeUp .5s ease both;
 }
@@ -90,7 +90,7 @@ h1 em { font-style: normal; color: var(--accent); }
     border-radius: 16px;
     padding: 2rem;
     width: 100%;
-    max-width: 640px;
+    max-width: 1080px;
     box-shadow: var(--shadow);
     animation: fadeUp .5s .1s ease both;
 }
@@ -290,7 +290,7 @@ h1 em { font-style: normal; color: var(--accent); }
     grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
     width: 100%;
-    max-width: 640px;
+    max-width: 1080px;
     margin-top: 1.5rem;
     animation: fadeUp .5s .2s ease both;
 }
@@ -330,4 +330,561 @@ footer {
 @keyframes fadeUp {
     from { opacity: 0; transform: translateY(16px); }
     to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ══════════════════════════════
+   ACTION CARDS (main page when data exists)
+══════════════════════════════ */
+.report-actions {
+    width: 100%;
+    max-width: 1080px;
+    margin-bottom: .5rem;
+}
+
+.action-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.action-card {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 1.4rem 1.5rem;
+    text-decoration: none;
+    box-shadow: var(--shadow);
+    transition: border-color .2s, box-shadow .2s, transform .15s;
+    cursor: pointer;
+}
+
+.action-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 6px 24px rgba(21,101,192,.14);
+    transform: translateY(-2px);
+}
+
+.action-card-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    background: var(--accent-light);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+
+.action-card-icon svg {
+    width: 22px; height: 22px;
+    stroke: var(--accent); fill: none; stroke-width: 1.8;
+}
+
+.action-card-body { flex: 1; min-width: 0; }
+
+.action-card-label {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: .3rem;
+}
+
+.action-card-meta {
+    font-size: .78rem;
+    color: var(--text-mid);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: .25rem;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    flex-wrap: wrap;
+}
+
+.action-card-sep { color: var(--muted); }
+
+.action-card-tax {
+    font-size: .75rem;
+    font-family: 'DM Mono', monospace;
+    color: var(--error);
+    font-weight: 500;
+}
+
+.action-card-arrow {
+    width: 18px; height: 18px;
+    stroke: var(--muted); fill: none; stroke-width: 2;
+    flex-shrink: 0;
+    transition: stroke .2s, transform .2s;
+}
+
+.action-card:hover .action-card-arrow {
+    stroke: var(--accent);
+    transform: translateX(3px);
+}
+
+.reload-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: .72rem;
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+    margin: 1.25rem 0 1rem;
+}
+
+.reload-divider::before,
+.reload-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+/* ══════════════════════════════
+   TOTALS STRIP (stocks / dividends pages)
+══════════════════════════════ */
+.totals-strip {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.1rem 1.5rem;
+    width: 100%;
+    max-width: 1080px;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+    animation: fadeUp .4s ease both;
+}
+
+.totals-item {
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+    padding: 0 .75rem;
+}
+
+.totals-item:first-child { padding-left: 0; }
+
+.totals-label {
+    font-size: .65rem;
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+}
+
+.totals-value {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: -.01em;
+}
+
+.totals-item--tax .totals-value { color: var(--error); font-size: .9rem; }
+.totals-item--total .totals-value { color: var(--accent); font-size: 1.1rem; }
+
+.totals-sep {
+    width: 1px;
+    height: 36px;
+    background: var(--border);
+    flex-shrink: 0;
+    margin: 0 .25rem;
+}
+
+/* table-title-badge */
+.report-table-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.table-title-badge {
+    font-size: .62rem;
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--success);
+    background: rgba(13,158,110,.1);
+    border: 1px solid rgba(13,158,110,.25);
+    border-radius: 5px;
+    padding: .2rem .5rem;
+}
+
+/* ══════════════════════════════
+   EMPTY REPORT STATE
+══════════════════════════════ */
+.empty-report {
+    width: 100%;
+    max-width: 1080px;
+    background: var(--surface);
+    border: 2px dashed var(--border);
+    border-radius: 16px;
+    text-align: center;
+    padding: 4rem 2rem;
+    animation: fadeUp .5s ease both;
+}
+
+.empty-report-icon {
+    width: 60px; height: 60px;
+    border-radius: 16px;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    display: grid;
+    place-items: center;
+    margin: 0 auto 1.25rem;
+}
+
+.empty-report-icon svg {
+    width: 26px; height: 26px;
+    stroke: var(--muted); fill: none; stroke-width: 1.6;
+}
+
+.empty-report-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: .5rem;
+}
+
+.empty-report-sub {
+    font-size: .85rem;
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.empty-report-sub a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.empty-report-sub a:hover { text-decoration: underline; }
+
+/* mono helper for table cells */
+.report-table td.mono {
+    font-family: 'DM Mono', monospace;
+    font-size: .77rem;
+    color: var(--text-mid);
+}
+
+/* ══════════════════════════════
+   YEAR NAV
+══════════════════════════════ */
+.year-nav {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    max-width: 1080px;
+    margin-bottom: 1.25rem;
+    animation: fadeUp .4s ease both;
+}
+
+.year-nav-label {
+    font-size: .7rem;
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.year-nav-tabs {
+    display: flex;
+    gap: .35rem;
+    flex-wrap: wrap;
+}
+
+.year-tab {
+    padding: .35rem .75rem;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-mid);
+    font-size: .8rem;
+    font-weight: 600;
+    font-family: 'DM Mono', monospace;
+    text-decoration: none;
+    transition: all .15s;
+}
+
+.year-tab:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-light);
+}
+
+.year-tab.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+
+/* ══════════════════════════════
+   TAX RESULTS
+══════════════════════════════ */
+.tax-results {
+    width: 100%;
+    max-width: 960px;
+    animation: fadeUp .5s .1s ease both;
+}
+
+.results-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+}
+
+.summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--shadow);
+}
+
+.summary-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.summary-card-title {
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.summary-badge {
+    font-size: .65rem;
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--success);
+    background: rgba(13,158,110,.1);
+    border: 1px solid rgba(13,158,110,.25);
+    border-radius: 5px;
+    padding: .2rem .5rem;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .35rem 0;
+    font-size: .82rem;
+    color: var(--text-mid);
+    border-bottom: 1px solid rgba(0,0,0,.04);
+}
+
+.summary-row:last-child { border-bottom: none; }
+.summary-row strong { font-family: 'DM Mono', monospace; font-size: .8rem; color: var(--text); }
+.summary-row.tax strong { color: var(--error); }
+.summary-row.total { padding-top: .5rem; }
+.summary-row.total span { font-weight: 700; color: var(--text); }
+.summary-row.total strong { font-size: .9rem; color: var(--accent); }
+
+.summary-divider {
+    height: 1px;
+    background: var(--border);
+    margin: .5rem 0;
+}
+
+/* Report tables */
+.report-table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+}
+
+.report-table-title {
+    padding: .9rem 1.25rem;
+    font-size: .75rem;
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+}
+
+.table-scroll { overflow-x: auto; }
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .8rem;
+    white-space: nowrap;
+}
+
+.report-table thead tr { background: var(--surface2); }
+.report-table th {
+    padding: .65rem 1rem;
+    text-align: left;
+    font-size: .68rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+}
+
+.report-table tbody tr { border-bottom: 1px solid rgba(0,0,0,.04); transition: background .12s; }
+.report-table tbody tr:last-child { border-bottom: none; }
+.report-table tbody tr:hover { background: var(--surface2); }
+.report-table td { padding: .6rem 1rem; color: var(--text); }
+.report-table td.num { font-family: 'DM Mono', monospace; font-size: .77rem; color: var(--accent); font-weight: 600; }
+
+/* ══════════════════════════════
+   DECLARATION FORM
+══════════════════════════════ */
+.decl-card { max-width: 1080px; }
+
+.decl-year-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    background: var(--accent-light);
+    border: 1px solid rgba(21,101,192,.2);
+    border-radius: 8px;
+    padding: .4rem .9rem;
+    font-size: .78rem;
+    color: var(--accent);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 1.5rem;
+}
+
+.decl-year-badge strong { font-size: .9rem; }
+
+.decl-section-label {
+    font-size: .68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: var(--muted);
+    margin-bottom: .85rem;
+    font-family: 'DM Mono', monospace;
+}
+
+.decl-field {
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+    margin-bottom: 1rem;
+    flex: 1;
+}
+
+.decl-field label {
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--text-mid);
+}
+
+.decl-field input {
+    padding: .7rem .9rem;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    font-family: 'Outfit', sans-serif;
+    font-size: .9rem;
+    color: var(--text);
+    background: var(--surface2);
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+}
+
+.decl-field input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(21,101,192,.1);
+    background: var(--surface);
+}
+
+.decl-field input::placeholder { color: var(--muted); }
+
+.decl-hint {
+    font-size: .7rem;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+}
+
+.decl-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .85rem;
+}
+
+.decl-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.75rem;
+}
+
+.decl-back-btn {
+    padding: .7rem 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--surface2);
+    color: var(--text-mid);
+    font-size: .85rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background .15s, border-color .15s;
+}
+
+.decl-back-btn:hover {
+    background: var(--surface);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.decl-submit-btn {
+    flex: 1;
+    margin-top: 0;
+}
+
+/* Generate Declaration button */
+.results-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: .5rem;
+}
+
+.btn-generate-decl {
+    display: inline-flex;
+    align-items: center;
+    gap: .55rem;
+    padding: .75rem 1.4rem;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 10px;
+    font-family: 'Outfit', sans-serif;
+    font-size: .88rem;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(21,101,192,.25);
+    transition: all .2s;
+}
+
+.btn-generate-decl:hover {
+    background: #1a75d1;
+    box-shadow: 0 6px 20px rgba(21,101,192,.35);
+    transform: translateY(-1px);
+}
+
+.btn-generate-decl svg {
+    width: 16px; height: 16px;
+    stroke: currentColor; fill: none; stroke-width: 2;
 }

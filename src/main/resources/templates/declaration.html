@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Generate Declaration')}"></head>
+
+<body>
+
+<!-- Sidebar -->
+<div th:replace="~{fragments/layout :: sidebar('stock')}"></div>
+
+<div class="main-wrap">
+
+    <div th:replace="~{fragments/layout :: topbar('Reports', 'Generate Declaration')}"></div>
+
+    <main class="page">
+
+        <div class="page-header">
+            <div class="page-eyebrow">
+                <div class="page-eyebrow-dot"></div>
+                Tax Declaration
+            </div>
+            <h1>Generate <em>XML Declaration</em></h1>
+            <p class="page-sub">Fill in your personal details to generate the declaration files. Two XML files will be bundled into a ZIP archive ready for upload to the DPS portal.</p>
+        </div>
+
+        <div class="card decl-card">
+
+            <form id="declForm" method="POST" th:action="@{/declaration}">
+                <input type="hidden" name="year" th:value="${year}">
+
+                <!-- Year indicator -->
+                <div class="decl-year-badge">
+                    Tax year: <strong th:text="${year}">2025</strong>
+                </div>
+
+                <!-- Personal info section -->
+                <div class="decl-section-label">Personal Information</div>
+
+                <div class="decl-field">
+                    <label for="fullName">Full name (ПІБ)</label>
+                    <input type="text" id="fullName" name="fullName" required
+                           placeholder="Іваненко Іван Іванович" autocomplete="name">
+                    <span class="decl-hint">As shown on your tax documents</span>
+                </div>
+
+                <div class="decl-field">
+                    <label for="ipn">IPN (Identification Number)</label>
+                    <input type="text" id="ipn" name="ipn" required
+                           placeholder="1234567890" maxlength="10"
+                           pattern="\d{10}" autocomplete="off">
+                    <span class="decl-hint">10-digit taxpayer identification number</span>
+                </div>
+
+                <!-- Address section -->
+                <div class="decl-section-label" style="margin-top: 1.5rem;">Address</div>
+
+                <div class="decl-row">
+                    <div class="decl-field">
+                        <label for="city">City</label>
+                        <input type="text" id="city" name="city" required
+                               placeholder="Київ" autocomplete="address-level2">
+                    </div>
+                    <div class="decl-field">
+                        <label for="street">Street</label>
+                        <input type="text" id="street" name="street" required
+                               placeholder="вул. Хрещатик, 1" autocomplete="street-address">
+                    </div>
+                </div>
+
+                <!-- Tax office section -->
+                <div class="decl-section-label" style="margin-top: 1.5rem;">Tax Office</div>
+
+                <div class="decl-field">
+                    <label for="taxName">Tax office name (Назва ДПС)</label>
+                    <input type="text" id="taxName" name="taxName" required
+                           placeholder="ГУ ДПС у м. Київ" autocomplete="organization">
+                    <span class="decl-hint">Name of your local tax authority</span>
+                </div>
+
+                <div class="decl-actions">
+                    <a th:href="@{/(year=${year})}" class="decl-back-btn">Back to Reports</a>
+                    <button type="submit" class="btn-submit decl-submit-btn">
+                        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        Download Declaration ZIP
+                    </button>
+                </div>
+
+            </form>
+        </div>
+
+    </main>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+
+</div>
+
+<th:block th:replace="~{fragments/layout :: sidebarScript}"/>
+<script>
+    // Basic IPN digit-only enforcement
+    document.getElementById('ipn').addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '').slice(0, 10);
+    });
+</script>
+</body>
+</html>

@@ -1,146 +1,132 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <title>Statistics – SolarSave</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/statistics.css}"/>
-    <link rel="stylesheet" th:href="@{/css/solar.css}"/>
-</head>
+
+<head th:replace="~{fragments/layout :: head('Statistics')}"></head>
+
 <body>
+<link rel="stylesheet" th:href="@{/css/solar.css}"/>
+<link rel="stylesheet" th:href="@{/css/statistics.css}"/>
 
-<div class="sun-orb"></div>
-<div class="panel-deco"></div>
+<!-- Sidebar -->
+<div th:replace="~{fragments/layout :: sidebar('solar')}"></div>
 
-<!-- Logout -->
-<div class="logout-bar" sec:authorize="isAuthenticated()">
-    <span class="logout-user">🌿 <span sec:authentication="name"></span></span>
-    <form id="logout-form" th:action="@{/logout}" method="post">
-        <input type="hidden" id="csrf-token" name="_csrf"/>
-        <button type="submit" class="logout-btn">Sign out</button>
-    </form>
-</div>
+<div class="main-wrap">
 
-<div class="page">
+  <div th:replace="~{fragments/layout :: topbar('Reports', 'Solar Statistics')}"></div>
 
-    <header>
-        <div class="logo-row">
-            <div class="logo-icon">☀️</div>
-            <span class="logo-text">SolarSave · Energy Analytics</span>
-        </div>
-        <div class="header-row">
-            <h1>Savings <em>Statistics</em></h1>
-            <a class="back-btn" th:href="@{/}">← Dashboard</a>
-        </div>
-    </header>
+  <div class="page">
+
+    <div class="logo-row">
+      <div class="logo-icon">☀️</div>
+      <span class="logo-text">SolarSave · Energy Analytics</span>
+    </div>
+    <div class="header-row">
+      <h1>Savings <em>Statistics</em></h1>
+      <a class="back-btn" th:href="@{/}">← Dashboard</a>
+    </div>
 
     <!-- Grand total banner -->
     <div class="grand-total" th:if="${stats != null}">
-        <div>
-            <p class="grand-total-label">Grand Total</p>
-            <p class="grand-total-value" th:text="${#numbers.formatDecimal(stats.grandTotal, 1, 2)} + '₴'">0.00₴</p>
-            <p class="grand-total-value" th:text="${#numbers.formatDecimal(stats.grandUsdTotal, 1, 2)} + '$'">0.00$</p>
-        </div>
-        <div class="grand-total-meta">
-            <div><strong th:text="${stats.byYear.size()}">0</strong> years</div>
-            <div><strong th:text="${#aggregates.sum(stats.byYear.![count])}">0</strong> transactions</div>
-        </div>
+      <div>
+        <p class="grand-total-label">Grand Total</p>
+        <p class="grand-total-value" th:text="${#numbers.formatDecimal(stats.grandTotal, 1, 2)} + '₴'">0.00₴</p>
+        <p class="grand-total-value" th:text="${#numbers.formatDecimal(stats.grandUsdTotal, 1, 2)} + '$'">0.00$</p>
+      </div>
+      <div class="grand-total-meta">
+        <div><strong th:text="${stats.byYear.size()}">0</strong> years</div>
+        <div><strong th:text="${#aggregates.sum(stats.byYear.![count])}">0</strong> transactions</div>
+      </div>
     </div>
 
-
-    <!-- Pass Thymeleaf data to JS -->
+    <!-- Pass data to chart -->
     <script th:inline="javascript">
         const YEARS_DATA = /*[[${stats.byYear}]]*/ [];
     </script>
 
     <!-- Chart card -->
     <div class="chart-card">
-
-        <div class="chart-header">
-            <div>
-                <p class="section-label">Earnings Overview</p>
-                <h2 class="chart-title" id="chart-title">Year by Year</h2>
-            </div>
-            <div class="chart-controls">
-                <div class="currency-toggle">
-                    <button class="toggle-btn active" id="btn-uah" onclick="switchCurrency('uah')">UAH</button>
-                    <button class="toggle-btn" id="btn-usd" onclick="switchCurrency('usd')">USD</button>
-                </div>
-                <button class="back-to-years" id="back-btn" onclick="showYears()" style="display:none">
-                    ← All Years
-                </button>
-            </div>
+      <div class="chart-header">
+        <div>
+          <p class="section-label">Earnings Overview</p>
+          <h2 class="chart-title" id="chart-title">Year by Year</h2>
         </div>
-
-        <div class="chart-wrap">
-            <canvas id="earningsChart"></canvas>
-            <div class="chart-tooltip" id="tooltip"></div>
+        <div class="chart-controls">
+          <div class="currency-toggle">
+            <button class="toggle-btn active" id="btn-uah" onclick="switchCurrency('uah')">UAH</button>
+            <button class="toggle-btn" id="btn-usd" onclick="switchCurrency('usd')">USD</button>
+          </div>
+          <button class="back-to-years" id="back-btn" onclick="showYears()" style="display:none">
+            ← All Years
+          </button>
         </div>
-
-        <p class="chart-hint" id="chart-hint">Click a bar to drill down by month</p>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="earningsChart"></canvas>
+        <div class="chart-tooltip" id="tooltip"></div>
+      </div>
+      <p class="chart-hint" id="chart-hint">Click a bar to drill down by month</p>
     </div>
 
-    <!-- Load chart logic from static file -->
     <script th:src="@{/js/earnings-chart.js}"></script>
 
     <!-- Year blocks -->
     <div th:if="${stats != null and not #lists.isEmpty(stats.byYear)}">
-        <div class="year-block" th:each="year : ${stats.byYear}">
+      <div class="year-block" th:each="year : ${stats.byYear}">
 
-            <div class="year-header">
-                <span class="year-title" th:text="${year.year}">2025</span>
-                <span class="year-total-pill"
-                      th:text="${#numbers.formatDecimal(year.total, 1, 2)} + '₴'">0.00₴</span>
-                <span class="year-total-pill"
-                      th:text="${#numbers.formatDecimal(year.usdTotal, 1, 2)} + '$'">0.00$</span>
-            </div>
-
-            <div class="month-table-wrap">
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Month</th>
-                        <th style="text-align:center">Transactions</th>
-                        <th class="bar-cell"></th>
-                        <th style="text-align:center">Total</th>
-                        <th style="text-align:right">USD Total</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="month : ${year.byMonth}">
-                        <td class="td-month" th:text="${month.month}">January</td>
-                        <td class="td-count" th:text="${month.count}">0</td>
-                        <td class="bar-cell">
-                            <div class="bar-track">
-                                <div class="bar-fill"
-                                     th:style="'width:' + ${year.total != 0 ? #numbers.formatDecimal((month.total / year.total) * 100, 1, 1) : 0} + '%'">
-                                </div>
-                            </div>
-                        </td>
-                        <td class="td-amount"
-                            th:text="${#numbers.formatDecimal(month.total, 1, 2)} + '₴'">0.00₴</td>
-                        <td class="td-amount"
-                            th:text="${#numbers.formatDecimal(month.UsdTotal, 1, 2)} + '$'">0.00$</td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-
+        <div class="year-header">
+          <span class="year-title" th:text="${year.year}">2025</span>
+          <span class="year-total-pill"
+                th:text="${#numbers.formatDecimal(year.total, 1, 2)} + '₴'">0.00₴</span>
+          <span class="year-total-pill"
+                th:text="${#numbers.formatDecimal(year.usdTotal, 1, 2)} + '$'">0.00$</span>
         </div>
+
+        <div class="month-table-wrap">
+          <table>
+            <thead>
+            <tr>
+              <th>Month</th>
+              <th style="text-align:center">Transactions</th>
+              <th class="bar-cell"></th>
+              <th style="text-align:center">Total</th>
+              <th style="text-align:right">USD Total</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="month : ${year.byMonth}">
+              <td class="td-month" th:text="${month.month}">January</td>
+              <td class="td-count" th:text="${month.count}">0</td>
+              <td class="bar-cell">
+                <div class="bar-track">
+                  <div class="bar-fill"
+                       th:style="'width:' + ${year.total != 0 ? #numbers.formatDecimal((month.total / year.total) * 100, 1, 1) : 0} + '%'">
+                  </div>
+                </div>
+              </td>
+              <td class="td-amount"
+                  th:text="${#numbers.formatDecimal(month.total, 1, 2)} + '₴'">0.00₴</td>
+              <td class="td-amount"
+                  th:text="${#numbers.formatDecimal(month.UsdTotal, 1, 2)} + '$'">0.00$</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
     </div>
 
     <div class="empty-state" th:if="${stats == null or #lists.isEmpty(stats.byYear)}">
-        <span class="empty-icon">🌱</span>
-        <p>No statistics yet.<br>Upload a statement on the dashboard first.</p>
+      <span class="empty-icon">🌱</span>
+      <p>No statistics yet.<br>Upload a statement on the <a th:href="@{/solar}">Solar Income</a> page first.</p>
     </div>
 
-</div>
+  </div><!-- /.page -->
 
-<script>
-    const xsrf = document.cookie.split('; ')
-        .find(r => r.startsWith('XSRF-TOKEN='))?.split('=')[1];
-    if (xsrf) document.getElementById('csrf-token').value = xsrf;
-</script>
+  <div th:replace="~{fragments/layout :: footer}"></div>
+
+</div><!-- /.main-wrap -->
+
+<th:block th:replace="~{fragments/layout :: sidebarScript}"/>
 </body>
 </html>

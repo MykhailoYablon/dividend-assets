@@ -121,6 +121,20 @@ body {
 
 .sidebar.collapsed .nav-label { opacity: 0; }
 
+/* Sub-nav group */
+.nav-group { margin-bottom: .2rem; }
+
+.nav-sub-group {
+    display: flex;
+    flex-direction: column;
+    margin: .1rem 0 .35rem .75rem;
+    padding-left: .85rem;
+    border-left: 1px solid rgba(255,255,255,.1);
+    gap: .05rem;
+}
+
+.sidebar.collapsed .nav-sub-group { display: none; }
+
 .nav-item {
     display: flex; align-items: center; gap: .85rem;
     padding: .7rem .75rem; border-radius: 10px;
@@ -130,6 +144,23 @@ body {
     white-space: nowrap; transition: all .2s;
     margin-bottom: .2rem; position: relative;
 }
+
+.nav-sub {
+    padding: .42rem .65rem;
+    font-size: .8rem;
+    margin-bottom: .05rem;
+    gap: .6rem;
+}
+
+.nav-sub-pip {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(255,255,255,.2);
+    flex-shrink: 0;
+    transition: background .2s;
+}
+
+.nav-sub.active .nav-sub-pip { background: #90bfff; }
+.nav-sub:hover .nav-sub-pip { background: rgba(255,255,255,.5); }
 
 .nav-item:hover { background: rgba(255,255,255,.07); color: #fff; }
 .nav-item.active { background: rgba(21,101,192,.35); color: #fff; }
@@ -261,7 +292,7 @@ h1 em { font-style: normal; color: var(--accent); }
 
 .card {
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: 16px; padding: 2rem; width: 100%; max-width: 640px;
+    border-radius: 16px; padding: 2rem; width: 100%; max-width: 1080px;
     box-shadow: var(--shadow); animation: fadeUp .5s .1s ease both;
 }
 
@@ -429,3 +460,56 @@ h1 em { font-style: normal; color: var(--accent); }
     color: var(--accent);
     border-color: rgba(21,101,192,.3);
 }
+
+/* ══ Solar / green sidebar theme ══
+   Applied when activePage == 'solar' (solar.html, statistics.html)
+══ */
+.sidebar.theme-solar {
+    background: #162a12;
+    transition: width .3s cubic-bezier(.4,0,.2,1), background .35s ease;
+}
+
+.sidebar.theme-solar .sidebar-logo {
+    border-bottom-color: rgba(255,255,255,.07);
+}
+
+.sidebar.theme-solar .logo-mark {
+    background: #2d8a3e;
+    box-shadow: 0 4px 14px rgba(45,138,62,.4);
+}
+
+.sidebar.theme-solar .logo-label span {
+    color: #a5d6a7;
+}
+
+.sidebar.theme-solar .nav-item.active {
+    background: rgba(61,181,84,.22);
+}
+
+.sidebar.theme-solar .nav-item.active::before {
+    background: #81c784;
+}
+
+.sidebar.theme-solar .nav-item.active .nav-icon {
+    background: rgba(61,181,84,.32);
+}
+
+.sidebar.theme-solar .nav-item.active .nav-badge {
+    background: rgba(165,214,167,.18);
+    color: #a5d6a7;
+}
+
+.sidebar.theme-solar .sidebar-toggle svg {
+    stroke: #3db554;
+}
+
+.sidebar.theme-solar .sidebar-toggle:hover {
+    background: rgba(61,181,84,.12);
+}
+
+.sidebar.theme-solar .nav-sub-group {
+    border-left-color: rgba(255,255,255,.1);
+}
+
+.sidebar.theme-solar .nav-sub.active .nav-sub-pip { background: #a5d6a7; }
+.sidebar.theme-solar .nav-sub:hover .nav-sub-pip { background: rgba(255,255,255,.5); }

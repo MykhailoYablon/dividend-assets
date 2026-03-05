@@ -65,6 +65,26 @@ class TaxCalculationController(
         return taxService.calculateTax(year, file, fileType, isMilitary)
     }
 
+    @GetMapping("/stocks")
+    fun stocksPage(
+        model: Model,
+        @RequestParam(required = false, defaultValue = "2025") year: Short
+    ): String {
+        model.addAttribute("report", taxService.getTaxReportsOrNull(year)?.totalStockReport)
+        model.addAttribute("year", year)
+        return "stocks"
+    }
+
+    @GetMapping("/dividends")
+    fun dividendsPage(
+        model: Model,
+        @RequestParam(required = false, defaultValue = "2025") year: Short
+    ): String {
+        model.addAttribute("report", taxService.getTaxReportsOrNull(year)?.totalDividendReport)
+        model.addAttribute("year", year)
+        return "dividends"
+    }
+
     @GetMapping("/declaration")
     fun declarationForm(
         model: Model,

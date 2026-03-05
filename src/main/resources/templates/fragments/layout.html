@@ -32,7 +32,9 @@
      Usage: <div th:replace="~{fragments/layout :: sidebar('stock')}"></div>
             <div th:replace="~{fragments/layout :: sidebar('solar')}"></div>
      ═══════════════════════════════════════ -->
-<aside class="sidebar" id="sidebar" th:fragment="sidebar(activePage)">
+<aside class="sidebar" id="sidebar"
+      th:classappend="${activePage == 'solar'} ? ' theme-solar'"
+      th:fragment="sidebar(activePage)">
     <div class="sidebar-logo">
         <div class="logo-mark">₴</div>
         <div class="logo-label">UA<span>Tax</span> Calc</div>
@@ -45,16 +47,34 @@
     <nav class="nav-section">
         <div class="nav-label">Reports</div>
 
-        <a href="/"
-           th:classappend="${activePage == 'stock'} ? ' active'"
-           class="nav-item"
-           data-tip="Stock &amp; Dividend">
-            <div class="nav-icon">
-                <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <div class="nav-group">
+            <a href="/"
+               th:classappend="${activePage == 'stock'} ? ' active'"
+               class="nav-item"
+               data-tip="Stock &amp; Dividend">
+                <div class="nav-icon">
+                    <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+                <span class="nav-text">Stock &amp; Dividend</span>
+                <span class="nav-badge">CSV · XML</span>
+            </a>
+            <div class="nav-sub-group">
+                <a href="/stocks"
+                   th:classappend="${activePage == 'stocks'} ? ' active'"
+                   class="nav-item nav-sub"
+                   data-tip="Stocks">
+                    <span class="nav-sub-pip"></span>
+                    <span class="nav-text">Stocks</span>
+                </a>
+                <a href="/dividends"
+                   th:classappend="${activePage == 'dividends'} ? ' active'"
+                   class="nav-item nav-sub"
+                   data-tip="Dividends">
+                    <span class="nav-sub-pip"></span>
+                    <span class="nav-text">Dividends</span>
+                </a>
             </div>
-            <span class="nav-text">Stock / Dividend</span>
-            <span class="nav-badge">CSV · XML</span>
-        </a>
+        </div>
 
         <a href="/solar"
            th:classappend="${activePage == 'solar'} ? ' active'"

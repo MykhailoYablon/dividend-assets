@@ -17,10 +17,10 @@
         <div class="page-header">
             <div class="page-eyebrow">
                 <div class="page-eyebrow-dot"></div>
-                Tax Declaration
+                <span th:text="#{decl.eyebrow}">Tax Declaration</span>
             </div>
-            <h1>Generate <em>XML Declaration</em></h1>
-            <p class="page-sub">Fill in your personal details to generate the declaration files. Two XML files will be bundled into a ZIP archive ready for upload to the DPS portal.</p>
+            <h1 th:utext="#{decl.title}">Generate <em>XML Declaration</em></h1>
+            <p class="page-sub" th:text="#{decl.subtitle}">Fill in your personal details to generate the declaration files. Two XML files will be bundled into a ZIP archive ready for upload to the DPS portal.</p>
         </div>
 
         <div class="card decl-card">
@@ -30,50 +30,50 @@
 
                 <!-- Year indicator -->
                 <div class="decl-year-badge">
-                    Tax year: <strong th:text="${year}">2025</strong>
+                    <span th:text="#{decl.tax_year}">Tax year:</span> <strong th:text="${year}">2025</strong>
                 </div>
 
                 <!-- Personal info section -->
-                <div class="decl-section-label">Personal Information</div>
+                <div class="decl-section-label" th:text="#{decl.section_personal}">Personal Information</div>
 
                 <div class="decl-field">
-                    <label for="fullName">Full name (ПІБ)</label>
+                    <label for="fullName" th:text="#{decl.full_name}">Full name</label>
                     <input type="text" id="fullName" name="fullName" required
                            placeholder="Іваненко Іван Іванович" autocomplete="name">
-                    <span class="decl-hint">As shown on your tax documents</span>
+                    <span class="decl-hint" th:text="#{decl.full_name_hint}">As shown on your tax documents</span>
                 </div>
 
                 <div class="decl-field">
-                    <label for="ipn">IPN (Identification Number)</label>
+                    <label for="ipn" th:text="#{decl.ipn}">IPN (Identification Number)</label>
                     <input type="text" id="ipn" name="ipn" required
-                           placeholder="1234567890" maxlength="10"
+                           th:placeholder="#{decl.ipn_placeholder}" maxlength="10"
                            pattern="\d{10}" autocomplete="off">
-                    <span class="decl-hint">10-digit taxpayer identification number</span>
+                    <span class="decl-hint" th:text="#{decl.ipn_hint}">10-digit taxpayer identification number</span>
                 </div>
 
                 <!-- Address section -->
-                <div class="decl-section-label" style="margin-top: 1.5rem;">Address</div>
+                <div class="decl-section-label" style="margin-top: 1.5rem;" th:text="#{decl.section_address}">Address</div>
 
                 <div class="decl-row">
                     <div class="decl-field">
-                        <label for="city">City</label>
+                        <label for="city" th:text="#{decl.city}">City</label>
                         <input type="text" id="city" name="city" required
-                               placeholder="Київ" autocomplete="address-level2">
+                               th:placeholder="#{decl.city_placeholder}" autocomplete="address-level2">
                     </div>
                     <div class="decl-field">
-                        <label for="street">Street</label>
+                        <label for="street" th:text="#{decl.street}">Street</label>
                         <input type="text" id="street" name="street" required
-                               placeholder="вул. Хрещатик, 1" autocomplete="street-address">
+                               th:placeholder="#{decl.street_placeholder}" autocomplete="street-address">
                     </div>
                 </div>
 
                 <!-- Tax office section -->
-                <div class="decl-section-label" style="margin-top: 1.5rem;">Tax Office</div>
+                <div class="decl-section-label" style="margin-top: 1.5rem;" th:text="#{decl.section_tax_office}">Tax Office</div>
 
                 <div class="decl-field">
-                    <label for="dpiId">Tax authority (ДПС)</label>
+                    <label for="dpiId" th:text="#{decl.dpi_label}">Tax authority</label>
                     <select id="dpiId" name="dpiId" required class="decl-select">
-                        <option value="" disabled selected>— Select your tax authority —</option>
+                        <option value="" disabled selected th:text="#{decl.dpi_select}">— Select your tax authority —</option>
                         <th:block th:with="regions=${#lists.sort(#lists.toList(#sets.toSet(dpiList.![region])))}">
                             <optgroup th:each="region : ${regions}" th:label="${region}">
                                 <option th:each="dpi : ${dpiList}"
@@ -84,14 +84,14 @@
                             </optgroup>
                         </th:block>
                     </select>
-                    <span class="decl-hint">Select your local tax authority by region</span>
+                    <span class="decl-hint" th:text="#{decl.dpi_hint}">Select your local tax authority by region</span>
                 </div>
 
                 <div class="decl-actions">
-                    <a th:href="@{/(year=${year})}" class="decl-back-btn">Back to Reports</a>
+                    <a th:href="@{/(year=${year})}" class="decl-back-btn" th:text="#{decl.back}">Back to Reports</a>
                     <button type="submit" class="btn-submit decl-submit-btn">
                         <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                        Download Declaration ZIP
+                        <span th:text="#{decl.download}">Download Declaration ZIP</span>
                     </button>
                 </div>
 

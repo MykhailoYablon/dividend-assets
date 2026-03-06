@@ -16,15 +16,15 @@
         <div class="page-header">
             <div class="page-eyebrow">
                 <div class="page-eyebrow-dot"></div>
-                Dividend Income
+                <span th:text="#{dividends.eyebrow}">Dividend Income</span>
             </div>
-            <h1>Dividend <em>Records</em></h1>
-            <p class="page-sub">Dividend payments converted to UAH at NBU exchange rates. Tax calculated at 9% + 1.5% military levy.</p>
+            <h1 th:utext="#{dividends.title}">Dividend <em>Records</em></h1>
+            <p class="page-sub" th:text="#{dividends.subtitle}">Dividend payments converted to UAH at NBU exchange rates. Tax calculated at 9% + 1.5% military levy.</p>
         </div>
 
         <!-- Year selector -->
         <div class="year-nav">
-            <span class="year-nav-label">Tax year</span>
+            <span class="year-nav-label" th:text="#{common.tax_year}">Tax year</span>
             <div class="year-nav-tabs">
                 <a th:each="y : ${#numbers.sequence(2020, 2025)}"
                    th:href="@{/dividends(year=${y})}"
@@ -39,32 +39,32 @@
             <div class="empty-report-icon">
                 <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
             </div>
-            <p class="empty-report-title">No dividend data for <span th:text="${year}">2025</span></p>
+            <p class="empty-report-title" th:text="#{dividends.no_data(${year})}">No dividend data for 2025</p>
             <p class="empty-report-sub">Upload a broker report on the <a th:href="@{/(year=${year})}">main page</a> to calculate taxes.</p>
         </div>
 
         <!-- Summary totals -->
         <div th:if="${report != null}" class="totals-strip">
             <div class="totals-item">
-                <div class="totals-label">Total (USD)</div>
+                <div class="totals-label" th:text="#{dividends.total_usd}">Total (USD)</div>
                 <div class="totals-value" th:text="'$' + ${report.totalAmount}">$—</div>
             </div>
             <div class="totals-item">
-                <div class="totals-label">Total (UAH)</div>
+                <div class="totals-label" th:text="#{dividends.total_uah}">Total (UAH)</div>
                 <div class="totals-value" th:text="'₴' + ${report.totalUaBrutto}">₴—</div>
             </div>
             <div class="totals-sep"></div>
             <div class="totals-item totals-item--tax">
-                <div class="totals-label">Tax 9%</div>
+                <div class="totals-label" th:text="#{dividends.tax9}">Tax 9%</div>
                 <div class="totals-value" th:text="'₴' + ${report.totalTax9}">₴—</div>
             </div>
             <div class="totals-item totals-item--tax">
-                <div class="totals-label">Military 1.5%</div>
+                <div class="totals-label" th:text="#{dividends.military}">Military 1.5%</div>
                 <div class="totals-value" th:text="'₴' + ${report.totalMilitaryTax5}">₴—</div>
             </div>
             <div class="totals-sep"></div>
             <div class="totals-item totals-item--total">
-                <div class="totals-label">Total Tax Due</div>
+                <div class="totals-label" th:text="#{dividends.total_tax}">Total Tax Due</div>
                 <div class="totals-value" th:text="'₴' + ${report.totalTaxSum}">₴—</div>
             </div>
         </div>
@@ -72,21 +72,21 @@
         <!-- Records table -->
         <div th:if="${report != null and !#lists.isEmpty(report.dividendRecords)}" class="report-table-wrap">
             <div class="report-table-title">
-                <span th:text="${#lists.size(report.dividendRecords)} + ' dividend records'">— records</span>
+                <span th:text="#{dividends.dividend_records(${#lists.size(report.dividendRecords)})}">— records</span>
                 <span class="table-title-badge" th:text="${report.status}">CALCULATED</span>
             </div>
             <div class="table-scroll">
                 <table class="report-table">
                     <thead>
                     <tr>
-                        <th>Symbol</th>
-                        <th>Date</th>
-                        <th>Amount (USD)</th>
-                        <th>NBU Rate</th>
-                        <th>UAH Brutto</th>
-                        <th>Tax 9%</th>
-                        <th>Military</th>
-                        <th>Total Tax</th>
+                        <th th:text="#{dividends.col_symbol}">Symbol</th>
+                        <th th:text="#{dividends.col_date}">Date</th>
+                        <th th:text="#{dividends.col_amount_usd}">Amount (USD)</th>
+                        <th th:text="#{dividends.col_nbu_rate}">NBU Rate</th>
+                        <th th:text="#{dividends.col_uah_brutto}">UAH Brutto</th>
+                        <th th:text="#{dividends.col_tax9}">Tax 9%</th>
+                        <th th:text="#{dividends.col_military}">Military</th>
+                        <th th:text="#{dividends.col_total_tax}">Total Tax</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -107,17 +107,17 @@
 
         <!-- Back / Declaration actions -->
         <div th:if="${report != null}" class="results-actions" style="margin-top: 1rem;">
-            <a th:href="@{/(year=${year})}" class="decl-back-btn">Back to Upload</a>
+            <a th:href="@{/(year=${year})}" class="decl-back-btn" th:text="#{common.back_to_upload}">Back to Upload</a>
             <a th:href="@{/declaration(year=${year})}" class="btn-generate-decl">
                 <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-                Generate Declaration
+                <span th:text="#{common.generate_declaration}">Generate Declaration</span>
             </a>
             <form method="POST" th:action="@{/dividends/delete}" class="delete-form"
                   onsubmit="return confirm('Delete all dividend records for ' + /*[[${year}]]*/ '' + '? This cannot be undone.')">
                 <input type="hidden" name="year" th:value="${year}">
                 <button type="submit" class="btn-delete">
                     <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-                    Delete Records
+                    <span th:text="#{common.delete_records}">Delete Records</span>
                 </button>
             </form>
         </div>

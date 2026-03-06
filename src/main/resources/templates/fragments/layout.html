@@ -45,33 +45,33 @@
     </button>
 
     <nav class="nav-section">
-        <div class="nav-label">Reports</div>
+        <div class="nav-label" th:text="#{nav.reports}">Reports</div>
 
         <div class="nav-group">
             <a href="/"
                th:classappend="${activePage == 'stock'} ? ' active'"
                class="nav-item"
-               data-tip="Stock &amp; Dividend">
+               th:data-tip="#{nav.stock_dividend}">
                 <div class="nav-icon">
                     <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                 </div>
-                <span class="nav-text">Stock &amp; Dividend</span>
+                <span class="nav-text" th:text="#{nav.stock_dividend}">Stock &amp; Dividend</span>
                 <span class="nav-badge">CSV · XML</span>
             </a>
             <div class="nav-sub-group">
                 <a href="/stocks"
                    th:classappend="${activePage == 'stocks'} ? ' active'"
                    class="nav-item nav-sub"
-                   data-tip="Stocks">
+                   th:data-tip="#{nav.stocks}">
                     <span class="nav-sub-pip"></span>
-                    <span class="nav-text">Stocks</span>
+                    <span class="nav-text" th:text="#{nav.stocks}">Stocks</span>
                 </a>
                 <a href="/dividends"
                    th:classappend="${activePage == 'dividends'} ? ' active'"
                    class="nav-item nav-sub"
-                   data-tip="Dividends">
+                   th:data-tip="#{nav.dividends}">
                     <span class="nav-sub-pip"></span>
-                    <span class="nav-text">Dividends</span>
+                    <span class="nav-text" th:text="#{nav.dividends}">Dividends</span>
                 </a>
             </div>
         </div>
@@ -80,20 +80,20 @@
             <a href="/solar"
                th:classappend="${activePage == 'solar'} ? ' active'"
                class="nav-item"
-               data-tip="Solar Income">
+               th:data-tip="#{nav.solar_income}">
                 <div class="nav-icon">
                     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
                 </div>
-                <span class="nav-text">Solar Income</span>
+                <span class="nav-text" th:text="#{nav.solar_income}">Solar Income</span>
                 <span class="nav-badge">XLSX</span>
             </a>
             <div class="nav-sub-group">
                 <a href="/statistics"
                    th:classappend="${activePage == 'statistics'} ? ' active'"
                    class="nav-item nav-sub"
-                   data-tip="Statistics">
+                   th:data-tip="#{nav.statistics}">
                     <span class="nav-sub-pip"></span>
-                    <span class="nav-text">Statistics</span>
+                    <span class="nav-text" th:text="#{nav.statistics}">Statistics</span>
                 </a>
             </div>
         </div>
@@ -117,11 +117,19 @@
 <!--        System ready-->
 <!--    </div>-->
 
-    <div class="logout-bar" sec:authorize="isAuthenticated()">
-        <span class="logout-user">🌿 <span sec:authentication="name"></span></span>
-        <form id="logout-form" th:action="@{/logout}" method="post">
-            <button type="submit" class="logout-btn">Sign out</button>
-        </form>
+    <div class="topbar-right">
+        <div class="lang-switcher">
+            <a th:href="${requestURI + '?lang=ua'}"
+               th:classappend="${#locale.language == 'ua'} ? ' active'">УК</a>
+            <a th:href="${requestURI + '?lang=en'}"
+               th:classappend="${#locale.language == 'en'} ? ' active'">EN</a>
+        </div>
+        <div class="logout-bar" sec:authorize="isAuthenticated()">
+            <span class="logout-user">🌿 <span sec:authentication="name"></span></span>
+            <form id="logout-form" th:action="@{/logout}" method="post">
+                <button type="submit" class="logout-btn" th:text="#{nav.sign_out}">Sign out</button>
+            </form>
+        </div>
     </div>
 </div>
 

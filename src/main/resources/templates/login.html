@@ -20,23 +20,23 @@
       <div class="panel-logo-label">UA<strong>Tax</strong> Calc</div>
     </div>
     <div class="panel-body">
-      <p class="panel-tagline">Ukrainian tax declaration calculator for Interactive Brokers investors.</p>
+      <p class="panel-tagline" th:text="#{login.tagline}">Ukrainian tax declaration calculator for Interactive Brokers investors.</p>
       <ul class="panel-features">
         <li>
           <span class="feat-icon">📊</span>
-          <span>Stock &amp; dividend tax calculation</span>
+          <span th:text="#{login.feat_stock}">Stock &amp; dividend tax calculation</span>
         </li>
         <li>
           <span class="feat-icon">📄</span>
-          <span>XML declaration generation</span>
+          <span th:text="#{login.feat_xml}">XML declaration generation</span>
         </li>
         <li>
           <span class="feat-icon">☀️</span>
-          <span>Solar energy income tracking</span>
+          <span th:text="#{login.feat_solar}">Solar energy income tracking</span>
         </li>
         <li>
           <span class="feat-icon">💱</span>
-          <span>NBU exchange rate integration</span>
+          <span th:text="#{login.feat_nbu}">NBU exchange rate integration</span>
         </li>
       </ul>
     </div>
@@ -50,28 +50,28 @@
       <span class="card-logo-label">UA<strong>Tax</strong> Calc</span>
     </div>
 
-    <h1>Welcome back</h1>
-    <p class="card-sub">Sign in to access your tax reports.</p>
+    <h1 th:text="#{login.title}">Welcome back</h1>
+    <p class="card-sub" th:text="#{login.sub}">Sign in to access your tax reports.</p>
 
-    <div class="error-banner" th:if="${param.error}">
+    <div class="error-banner" th:if="${param.error}" th:text="#{login.error}">
       Invalid username or password. Please try again.
     </div>
 
     <form th:action="@{/login}" method="post">
 
       <div class="field">
-        <label for="username">Username</label>
+        <label for="username" th:text="#{login.username}">Username</label>
         <input type="text" id="username" name="username"
                placeholder="your@email.com" autocomplete="username" required/>
       </div>
 
       <div class="field">
-        <label for="password">Password</label>
+        <label for="password" th:text="#{login.password}">Password</label>
         <input type="password" id="password" name="password"
                placeholder="••••••••" autocomplete="current-password" required/>
       </div>
 
-      <button type="submit" class="submit-btn">Sign In</button>
+      <button type="submit" class="submit-btn" th:text="#{login.sign_in}">Sign In</button>
     </form>
 
   </div>

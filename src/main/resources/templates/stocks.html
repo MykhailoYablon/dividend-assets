@@ -16,15 +16,15 @@
         <div class="page-header">
             <div class="page-eyebrow">
                 <div class="page-eyebrow-dot"></div>
-                Stock Gains &amp; Losses
+                <span th:text="#{stocks.eyebrow}">Stock Gains &amp; Losses</span>
             </div>
-            <h1>Stock <em>Trade Records</em></h1>
-            <p class="page-sub">FIFO-matched trades with UAH conversion at NBU exchange rates for the selected tax year.</p>
+            <h1 th:utext="#{stocks.title}">Stock <em>Trade Records</em></h1>
+            <p class="page-sub" th:text="#{stocks.subtitle}">FIFO-matched trades with UAH conversion at NBU exchange rates for the selected tax year.</p>
         </div>
 
         <!-- Year selector -->
         <div class="year-nav">
-            <span class="year-nav-label">Tax year</span>
+            <span class="year-nav-label" th:text="#{common.tax_year}">Tax year</span>
             <div class="year-nav-tabs">
                 <a th:each="y : ${#numbers.sequence(2020, 2025)}"
                    th:href="@{/stocks(year=${y})}"
@@ -39,33 +39,33 @@
             <div class="empty-report-icon">
                 <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             </div>
-            <p class="empty-report-title">No stock data for <span th:text="${year}">2025</span></p>
+            <p class="empty-report-title" th:text="#{stocks.no_data(${year})}">No stock data for 2025</p>
             <p class="empty-report-sub">Upload a broker report on the <a th:href="@{/(year=${year})}">main page</a> to calculate taxes.</p>
         </div>
 
         <!-- Summary totals -->
         <div th:if="${report != null}" class="totals-strip">
             <div class="totals-item">
-                <div class="totals-label">Net Profit</div>
+                <div class="totals-label" th:text="#{stocks.net_profit}">Net Profit</div>
                 <div class="totals-value" th:text="'₴' + ${report.totalUaBrutto}">₴—</div>
             </div>
             <div class="totals-sep"></div>
             <div class="totals-item">
-                <div class="totals-label">After Tax</div>
+                <div class="totals-label" th:text="#{stocks.after_tax}">After Tax</div>
                 <div class="totals-value" th:text="'₴' + ${report.totalUaNetto}">₴—</div>
             </div>
             <div class="totals-sep"></div>
             <div class="totals-item totals-item--tax">
-                <div class="totals-label">Tax 18%</div>
+                <div class="totals-label" th:text="#{stocks.tax18}">Tax 18%</div>
                 <div class="totals-value" th:text="'₴' + ${report.totalTax18}">₴—</div>
             </div>
             <div class="totals-item totals-item--tax">
-                <div class="totals-label">Military 1.5%</div>
+                <div class="totals-label" th:text="#{stocks.military}">Military 1.5%</div>
                 <div class="totals-value" th:text="'₴' + ${report.totalMilitaryTax5}">₴—</div>
             </div>
             <div class="totals-sep"></div>
             <div class="totals-item totals-item--total">
-                <div class="totals-label">Total Tax Due</div>
+                <div class="totals-label" th:text="#{stocks.total_tax}">Total Tax Due</div>
                 <div class="totals-value" th:text="'₴' + ${report.totalTaxSum}">₴—</div>
             </div>
         </div>
@@ -73,24 +73,24 @@
         <!-- Records table -->
         <div th:if="${report != null and !#lists.isEmpty(report.stockRecords)}" class="report-table-wrap">
             <div class="report-table-title">
-                <span th:text="${#lists.size(report.stockRecords)} + ' trade records'">— records</span>
+                <span th:text="#{stocks.trade_records(${#lists.size(report.stockRecords)})}">— records</span>
                 <span class="table-title-badge" th:text="${report.status}">CALCULATED</span>
             </div>
             <div class="table-scroll">
                 <table class="report-table">
                     <thead>
                     <tr>
-                        <th>Symbol</th>
-                        <th>Qty</th>
-                        <th>Buy Date</th>
-                        <th>Sell Date</th>
-                        <th>Buy Rate</th>
-                        <th>Sell Rate</th>
-                        <th>Buy UAH</th>
-                        <th>Sell UAH</th>
-                        <th>Profit UAH</th>
-                        <th>Tax 18%</th>
-                        <th>Military</th>
+                        <th th:text="#{stocks.col_symbol}">Symbol</th>
+                        <th th:text="#{stocks.col_qty}">Qty</th>
+                        <th th:text="#{stocks.col_buy_date}">Buy Date</th>
+                        <th th:text="#{stocks.col_sell_date}">Sell Date</th>
+                        <th th:text="#{stocks.col_buy_rate}">Buy Rate</th>
+                        <th th:text="#{stocks.col_sell_rate}">Sell Rate</th>
+                        <th th:text="#{stocks.col_buy_uah}">Buy UAH</th>
+                        <th th:text="#{stocks.col_sell_uah}">Sell UAH</th>
+                        <th th:text="#{stocks.col_profit_uah}">Profit UAH</th>
+                        <th th:text="#{stocks.col_tax18}">Tax 18%</th>
+                        <th th:text="#{stocks.col_military}">Military</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -114,17 +114,17 @@
 
         <!-- Back / Declaration actions -->
         <div th:if="${report != null}" class="results-actions" style="margin-top: 1rem;">
-            <a th:href="@{/(year=${year})}" class="decl-back-btn">Back to Upload</a>
+            <a th:href="@{/(year=${year})}" class="decl-back-btn" th:text="#{common.back_to_upload}">Back to Upload</a>
             <a th:href="@{/declaration(year=${year})}" class="btn-generate-decl">
                 <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-                Generate Declaration
+                <span th:text="#{common.generate_declaration}">Generate Declaration</span>
             </a>
             <form method="POST" th:action="@{/stocks/delete}" class="delete-form"
                   onsubmit="return confirm('Delete all stock records for ' + /*[[${year}]]*/ '' + '? This cannot be undone.')">
                 <input type="hidden" name="year" th:value="${year}">
                 <button type="submit" class="btn-delete">
                     <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-                    Delete Records
+                    <span th:text="#{common.delete_records}">Delete Records</span>
                 </button>
             </form>
         </div>

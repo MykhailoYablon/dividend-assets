@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.multipart.MultipartFile
+import java.util.Locale
 
 @Controller
 class TaxCalculationController(
@@ -28,11 +29,14 @@ class TaxCalculationController(
     fun getAllReports(
         model: Model,
         @RequestParam(required = false, defaultValue = "2025") year: Short,
-        @AuthenticationPrincipal user: MyUserDetails
+        @AuthenticationPrincipal user: MyUserDetails,
+        locale: Locale
     ): String {
         val taxReports = taxService.getTaxReports(year)
         model.addAttribute("taxReports", taxReports)
         model.addAttribute("year", year)
+
+        System.out.println("Current Locale: " + locale.getLanguage());
         return "main"
     }
 

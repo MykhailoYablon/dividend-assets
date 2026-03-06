@@ -6,8 +6,6 @@ import com.kotlin.assets.repository.SolarFileReportRepository
 import com.kotlin.assets.repository.SolarRepository
 import org.apache.poi.ss.usermodel.WorkbookFactory
 import org.assertj.core.api.Assertions.assertThat
-import org.jetbrains.kotlinx.dataframe.api.toDataFrame
-import org.jetbrains.kotlinx.dataframe.io.writeExcel
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentMatchers.argThat
@@ -175,35 +173,26 @@ class SolarServiceTest {
 
     fun buildXlsxMultipartFile(rows: List<List<Any>>): MultipartFile {
         val out = ByteArrayOutputStream()
-        val dataRows = rows.map { row ->
-            mapOf(
-                "Дата" to row.getOrElse(0) { "" }.toString(),
-                "Категорія" to row.getOrElse(1) { "" }.toString(),
-                "Картка" to row.getOrElse(2) { "" }.toString(),
-                "Опис операції" to row.getOrElse(3) { "" }.toString(),
-                "Сума в валюті картки" to row.getOrElse(4) { "" }.toString(),
-                "Валюта картки" to row.getOrElse(5) { "" }.toString(),
-            )
+        val workbook = WorkbookFactory.create(false)
+        val sheet = workbook.createSheet("Sheet1")
+
+        val headers = listOf("Дата", "Категорія", "Картка", "Опис операції", "Сума в валюті картки", "Валюта картки")
+        val headerRow = sheet.createRow(0)
+        headers.forEachIndexed { i, name -> headerRow.createCell(i).setCellValue(name) }
+
+        rows.forEachIndexed { rowIdx, row ->
+            val excelRow = sheet.createRow(rowIdx + 1)
+            row.forEachIndexed { colIdx, value -> excelRow.createCell(colIdx).setCellValue(value.toString()) }
         }
-        val header = mutableListOf("Історія операцій за період 01.04.2022 - 20.02.2026")
 
-        val headerFrame = header.toDataFrame()
+        workbook.write(out)
+        workbook.close()
 
-        val df = dataRows.toDataFrame()
-
-//        val concat = headerFrame.concat(df)
-
-        // Write the DataFrame to the OutputStream
-        val wb = WorkbookFactory.create(true)
-
-        df.writeExcel(outputStream = out, factory = wb)
-
-        // Create the MockMultipartFile
         return MockMultipartFile(
-            "file", // Name of the request parameter on the server side (e.g., @RequestParam("file"))
-            "test.xlsx", // Original filename
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // Content type for .xlsx
-            ByteArrayInputStream(out.toByteArray()) // File content as InputStream
+            "file",
+            "test.xlsx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ByteArrayInputStream(out.toByteArray())
         )
     }
 

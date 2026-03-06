@@ -2,14 +2,9 @@ package com.kotlin.assets.configuration
 
 import com.kotlin.assets.configuration.jwt.JwtFilter
 import com.kotlin.assets.service.impl.UserDetailsServiceImpl
-import jakarta.servlet.FilterChain
 import jakarta.servlet.http.Cookie
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
-import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.core.Ordered
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
@@ -19,8 +14,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
-import org.springframework.security.web.csrf.CsrfToken
-import org.springframework.web.filter.OncePerRequestFilter
 
 @Configuration
 class SecurityConfig(
@@ -48,8 +41,7 @@ class SecurityConfig(
             .authenticationProvider(authenticationProvider())
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
-                auth.requestMatchers("/login", "/error", "/css/**", "/js/**").permitAll()
-//                    .anyRequest().permitAll()
+                auth.requestMatchers("/login", "/error", "/css/**", "/js/**", "/fonts/**").permitAll()
                     .anyRequest().authenticated()
             }
             .sessionManagement { session ->
@@ -78,23 +70,4 @@ class SecurityConfig(
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter::class.java)
         return http.build()
     }
-
-    @Bean
-    fun csrfCookieFilter(): FilterRegistrationBean<*> {
-        val filter = object : OncePerRequestFilter() {
-            override fun doFilterInternal(
-                request: HttpServletRequest,
-                response: HttpServletResponse,
-                filterChain: FilterChain
-            ) {
-                val csrf = request.getAttribute(CsrfToken::class.java.name)
-                if (csrf is CsrfToken) csrf.token // trigger lazy token generation
-                filterChain.doFilter(request, response)
-            }
-        }
-        return FilterRegistrationBean(filter).apply {
-            order = Ordered.LOWEST_PRECEDENCE
-        }
-    }
-
 }

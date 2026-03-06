@@ -4,13 +4,14 @@ import com.kotlin.assets.configuration.jwt.JwtUtil
 import com.kotlin.assets.repository.UserRepository
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
-import javax.naming.AuthenticationException
+import org.springframework.security.core.AuthenticationException
 
 @Controller
 class AuthController(
@@ -18,6 +19,10 @@ class AuthController(
     private val userRepository: UserRepository,
     private val jwtUtil: JwtUtil
 ) {
+
+    @Value("\${jwt.cookie.enabled}")
+    private var cookieEnabled: Boolean = false
+
     @GetMapping("/login")
     fun loginPage(): String {
         return "login"
@@ -38,7 +43,7 @@ class AuthController(
 
             val cookie = Cookie("jwt", token).apply {
                 isHttpOnly = true
-                secure = false // set to false for local HTTP dev
+                secure = cookieEnabled // set to false for local HTTP dev
                 path = "/"
                 maxAge = 3600 // matches jwt.expiration in seconds
             }

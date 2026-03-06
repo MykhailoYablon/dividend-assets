@@ -33,7 +33,7 @@
             <div th:replace="~{fragments/layout :: sidebar('solar')}"></div>
      ═══════════════════════════════════════ -->
 <aside class="sidebar" id="sidebar"
-      th:classappend="${activePage == 'solar'} ? ' theme-solar'"
+      th:classappend="${activePage == 'solar' or activePage == 'statistics'} ? ' theme-solar'"
       th:fragment="sidebar(activePage)">
     <div class="sidebar-logo">
         <div class="logo-mark">₴</div>
@@ -76,27 +76,28 @@
             </div>
         </div>
 
-        <a href="/solar"
-           th:classappend="${activePage == 'solar'} ? ' active'"
-           class="nav-item"
-           data-tip="Solar Income">
-            <div class="nav-icon">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-            </div>
-            <span class="nav-text">Solar Income</span>
-            <span class="nav-badge">XLSX</span>
-        </a>
-    </nav>
-
-    <div class="sidebar-footer">
-        <div class="sidebar-footer-inner">
-            <div class="avatar">U</div>
-            <div class="avatar-info">
-                <div class="avatar-name">User</div>
-                <div class="avatar-role">Tax Reporter</div>
+        <div class="nav-group">
+            <a href="/solar"
+               th:classappend="${activePage == 'solar'} ? ' active'"
+               class="nav-item"
+               data-tip="Solar Income">
+                <div class="nav-icon">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                </div>
+                <span class="nav-text">Solar Income</span>
+                <span class="nav-badge">XLSX</span>
+            </a>
+            <div class="nav-sub-group">
+                <a href="/statistics"
+                   th:classappend="${activePage == 'statistics'} ? ' active'"
+                   class="nav-item nav-sub"
+                   data-tip="Statistics">
+                    <span class="nav-sub-pip"></span>
+                    <span class="nav-text">Statistics</span>
+                </a>
             </div>
         </div>
-    </div>
+    </nav>
 </aside>
 
 

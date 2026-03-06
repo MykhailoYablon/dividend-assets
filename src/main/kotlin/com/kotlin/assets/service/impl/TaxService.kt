@@ -236,6 +236,16 @@ class TaxService(
         return totalStockReportRepository.save(totalStockReport)
     }
 
+    @Transactional
+    fun deleteStockReport(year: Short) {
+        totalStockReportRepository.findByYear(year).ifPresent { totalStockReportRepository.delete(it) }
+    }
+
+    @Transactional
+    fun deleteDividendReport(year: Short) {
+        totalDividendReportRepository.findByYear(year).ifPresent { totalDividendReportRepository.delete(it) }
+    }
+
     private fun round(value: BigDecimal): BigDecimal {
         return value.setScale(2, RoundingMode.HALF_UP)
     }

@@ -1,14 +1,10 @@
 package com.kotlin.assets.service.impl
 
-import com.kotlin.assets.dto.tax.xml.Declar
-import com.kotlin.assets.dto.tax.xml.DeclarBody
-import com.kotlin.assets.dto.tax.xml.DeclarBodyF1
-import com.kotlin.assets.dto.tax.xml.DeclarHead
-import com.kotlin.assets.dto.tax.xml.Doc
-import com.kotlin.assets.dto.tax.xml.LinkedDocs
+import com.kotlin.assets.dto.tax.xml.*
+import com.kotlin.assets.entity.DpiEntity
 import com.kotlin.assets.entity.tax.TotalDividendReport
 import com.kotlin.assets.entity.tax.TotalStockReport
-import com.kotlin.assets.repository.ExchangeRateRepository
+import com.kotlin.assets.repository.DpiRepository
 import com.kotlin.assets.repository.TotalDividendReportRepository
 import com.kotlin.assets.repository.TotalStockReportRepository
 import org.springframework.http.HttpStatus
@@ -20,13 +16,13 @@ import java.io.File
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.UUID
+import java.util.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 @Service
 class DeclarationGenerationService(
-    private val exchangeRateRepository: ExchangeRateRepository,
+    private val dpiRepository: DpiRepository,
     private val xmlGeneratorService: XmlGeneratorService,
     private val totalStockReportRepository: TotalStockReportRepository,
     private val totalDividendReportRepository: TotalDividendReportRepository
@@ -39,7 +35,7 @@ class DeclarationGenerationService(
         year: Short,
         fullName: String,
         ipn: String,
-        taxName: String,
+        taxNameId: Long,
         city: String,
         street: String
     ): ByteArray {
@@ -49,12 +45,26 @@ class DeclarationGenerationService(
         val totalDividendReport = totalDividendReportRepository.findByYear(year)
             .orElseThrow { throw ResponseStatusException(HttpStatus.NOT_FOUND) }
 
+        val dpi = dpiRepository.findById(taxNameId)
+            .orElseThrow { throw ResponseStatusException(HttpStatus.NOT_FOUND) }
+
         val uuid = UUID.randomUUID()
         val mainFilename = "F0100214_Zvit_$uuid.xml"
         val f1Filename = "F0121214_DodatokF1_$uuid.xml"
         val fillDate = LocalDate.now().format(DateTimeFormatter.ofPattern("ddMMyyyy"))
 
-        val mainDeclar = createDeclar(uuid, totalStockReport, totalDividendReport, fillDate, fullName, ipn, taxName, city, street, year)
+        val mainDeclar = createDeclar(
+            uuid,
+            totalStockReport,
+            totalDividendReport,
+            fillDate,
+            fullName,
+            ipn,
+            dpi.name,
+            city,
+            street,
+            year
+        )
         val f1Declar = createDeclarF1(uuid, totalStockReport, fillDate, fullName, ipn, year)
 
         val mainBytes = xmlGeneratorService.marshalToBytes(mainDeclar)
@@ -91,7 +101,8 @@ class DeclarationGenerationService(
 
         val mainDeclar = createDeclar(
             uuid, totalStockReport, totalDividendReport, fillDate,
-            "", "", "", "", "", year)
+            "", "", "", "", "", year
+        )
         val f1Declar = createDeclarF1(uuid, totalStockReport, fillDate, "", "", year)
 
         xmlGeneratorService.saveXmlToFile(mainDeclar, mainFilePath)
@@ -245,14 +256,20 @@ class DeclarationGenerationService(
 
         // Add table rows
         totalStockReport.records.forEachIndexed { index, record ->
-            body.addTableRow((index + 1).toString(),
+            body.addTableRow(
+                (index + 1).toString(),
                 "4", // ??
-                record.symbol + " " + record.sellQuantity +"шт.",
+                record.symbol + " " + record.sellQuantity + "шт.",
                 record.sellPriceUah.toString(),
                 record.buyPriceUah.toString(),
-                record.netProfitUah.toString())
+                record.netProfitUah.toString()
+            )
         }
         declar.setDeclarBody(body)
         return declar
+    }
+
+    fun getAllDpis(): List<DpiEntity> {
+        return dpiRepository.findAll()
     }
 }

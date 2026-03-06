@@ -12,12 +12,10 @@ import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.filter
 import org.jetbrains.kotlinx.dataframe.api.map
 import org.jetbrains.kotlinx.dataframe.io.readExcel
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.ui.Model
 import org.springframework.web.multipart.MultipartFile
-import org.springframework.web.server.ResponseStatusException
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDateTime
@@ -100,16 +98,25 @@ class SolarService(
     }
 
     fun getAllReports(model: Model, userId: Long) {
-        val fileReport = solarFileReportRepository.findFirstByUserIdOrderByCreatedAtDesc(userId)
-            .orElseThrow { throw ResponseStatusException(HttpStatus.NOT_FOUND) }
-        val total = fileReport.total
-        val usdTotal = fileReport.usdTotal
+        val fileReportOptional = solarFileReportRepository.findFirstByUserIdOrderByCreatedAtDesc(userId)
+        if (fileReportOptional.isEmpty) {
+            return
+        } else {
+            val fileReport = fileReportOptional.get()
+            val total = fileReport.total
+            val usdTotal = fileReport.usdTotal
 
-        val reports = solarRepository.findAllBySolarFileReportId(fileReport.id)
+            val reports = solarRepository.findAllBySolarFileReportId(fileReport.id)
 
-        model.addAttribute("reports", reports)
-        model.addAttribute("total", "Total Amount: $total ₴")
-        model.addAttribute("usTotal", "Total US Amount: $usdTotal $")
+            model.addAttribute("reports", reports)
+            model.addAttribute("total", "Total Amount: $total ₴")
+            model.addAttribute("usTotal", "Total US Amount: $usdTotal $")
+        }
+    }
+
+    @Transactional
+    fun deleteAllReports(userId: Long) {
+        solarFileReportRepository.deleteAllByUserId(userId)
     }
 
     fun buildStatistics(): Statistics {

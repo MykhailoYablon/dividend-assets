@@ -70,12 +70,30 @@ class TaxCalculationController(
         return "dividends"
     }
 
+    @PostMapping("/stocks/delete")
+    fun deleteStockReport(@RequestParam year: Short): String {
+        taxService.deleteStockReport(year)
+        return "redirect:/?year=$year"
+    }
+
+    @PostMapping("/dividends/delete")
+    fun deleteDividendReport(@RequestParam year: Short): String {
+        taxService.deleteDividendReport(year)
+        return "redirect:/?year=$year"
+    }
+
     @GetMapping("/declaration")
     fun declarationForm(
         model: Model,
         @RequestParam(required = false, defaultValue = "2025") year: Short
     ): String {
+
+        val dpis = declarationGenerationService.getAllDpis()
+
         model.addAttribute("year", year)
+
+        model.addAttribute("dpiList", dpis)
+
         return "declaration"
     }
 
@@ -84,11 +102,11 @@ class TaxCalculationController(
         @RequestParam year: Short,
         @RequestParam fullName: String,
         @RequestParam ipn: String,
-        @RequestParam taxName: String,
+        @RequestParam taxNameId: Long,
         @RequestParam city: String,
         @RequestParam street: String
     ): ResponseEntity<ByteArray> {
-        val zipBytes = declarationGenerationService.generateXmlZip(year, fullName, ipn, taxName, city, street)
+        val zipBytes = declarationGenerationService.generateXmlZip(year, fullName, ipn, taxNameId, city, street)
         val headers = HttpHeaders().apply {
             contentDisposition = ContentDisposition.attachment()
                 .filename("declaration_$year.zip")

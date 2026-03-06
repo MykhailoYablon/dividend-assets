@@ -22,20 +22,20 @@
       <span class="logo-text">SolarSave · Energy Analytics</span>
     </div>
     <div class="header-row">
-      <h1>Savings <em>Statistics</em></h1>
-      <a class="back-btn" th:href="@{/}">← Dashboard</a>
+      <h1 th:utext="#{stats.title}">Savings <em>Statistics</em></h1>
+      <a class="back-btn" th:href="@{/}" th:text="#{stats.back}">← Dashboard</a>
     </div>
 
     <!-- Grand total banner -->
     <div class="grand-total" th:if="${stats != null}">
       <div>
-        <p class="grand-total-label">Grand Total</p>
+        <p class="grand-total-label" th:text="#{stats.grand_total}">Grand Total</p>
         <p class="grand-total-value" th:text="${#numbers.formatDecimal(stats.grandTotal, 1, 2)} + '₴'">0.00₴</p>
         <p class="grand-total-value" th:text="${#numbers.formatDecimal(stats.grandUsdTotal, 1, 2)} + '$'">0.00$</p>
       </div>
       <div class="grand-total-meta">
-        <div><strong th:text="${stats.byYear.size()}">0</strong> years</div>
-        <div><strong th:text="${#aggregates.sum(stats.byYear.![count])}">0</strong> transactions</div>
+        <div th:text="#{stats.years(${stats.byYear.size()})}">0 years</div>
+        <div th:text="#{stats.transactions(${#aggregates.sum(stats.byYear.![count])})}">0 transactions</div>
       </div>
     </div>
 
@@ -48,24 +48,23 @@
     <div class="chart-card">
       <div class="chart-header">
         <div>
-          <p class="section-label">Earnings Overview</p>
-          <h2 class="chart-title" id="chart-title">Year by Year</h2>
+          <p class="section-label" th:text="#{stats.earnings_overview}">Earnings Overview</p>
+          <h2 class="chart-title" id="chart-title" th:text="#{stats.year_by_year}">Year by Year</h2>
         </div>
         <div class="chart-controls">
           <div class="currency-toggle">
             <button class="toggle-btn active" id="btn-uah" onclick="switchCurrency('uah')">UAH</button>
             <button class="toggle-btn" id="btn-usd" onclick="switchCurrency('usd')">USD</button>
           </div>
-          <button class="back-to-years" id="back-btn" onclick="showYears()" style="display:none">
-            ← All Years
-          </button>
+          <button class="back-to-years" id="back-btn" onclick="showYears()" style="display:none"
+                  th:text="#{stats.all_years}">← All Years</button>
         </div>
       </div>
       <div class="chart-wrap">
         <canvas id="earningsChart"></canvas>
         <div class="chart-tooltip" id="tooltip"></div>
       </div>
-      <p class="chart-hint" id="chart-hint">Click a bar to drill down by month</p>
+      <p class="chart-hint" id="chart-hint" th:text="#{stats.chart_hint}">Click a bar to drill down by month</p>
     </div>
 
     <script th:src="@{/js/earnings-chart.js}"></script>
@@ -86,11 +85,11 @@
           <table>
             <thead>
             <tr>
-              <th>Month</th>
-              <th style="text-align:center">Transactions</th>
+              <th th:text="#{stats.col_month}">Month</th>
+              <th style="text-align:center" th:text="#{stats.col_transactions}">Transactions</th>
               <th class="bar-cell"></th>
-              <th style="text-align:center">Total</th>
-              <th style="text-align:right">USD Total</th>
+              <th style="text-align:center" th:text="#{stats.col_total}">Total</th>
+              <th style="text-align:right" th:text="#{stats.col_usd_total}">USD Total</th>
             </tr>
             </thead>
             <tbody>
@@ -118,7 +117,7 @@
 
     <div class="empty-state" th:if="${stats == null or #lists.isEmpty(stats.byYear)}">
       <span class="empty-icon">🌱</span>
-      <p>No statistics yet.<br>Upload a statement on the <a th:href="@{/solar}">Solar Income</a> page first.</p>
+      <p th:utext="#{stats.empty}">No statistics yet.<br>Upload a statement on the <a href="/solar">Solar Income</a> page first.</p>
     </div>
 
   </div><!-- /.page -->

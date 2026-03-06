@@ -8,4 +8,5 @@ import java.util.Optional
 @Repository
 interface SolarFileReportRepository : JpaRepository<SolarFileReport, Long> {
     fun findFirstByUserIdOrderByCreatedAtDesc(userId: Long): Optional<SolarFileReport>
+    fun deleteAllByUserId(userId: Long)
 }

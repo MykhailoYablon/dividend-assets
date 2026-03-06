@@ -71,10 +71,20 @@
                 <div class="decl-section-label" style="margin-top: 1.5rem;">Tax Office</div>
 
                 <div class="decl-field">
-                    <label for="taxName">Tax office name (Назва ДПС)</label>
-                    <input type="text" id="taxName" name="taxName" required
-                           placeholder="ГУ ДПС у м. Київ" autocomplete="organization">
-                    <span class="decl-hint">Name of your local tax authority</span>
+                    <label for="dpiId">Tax authority (ДПС)</label>
+                    <select id="dpiId" name="dpiId" required class="decl-select">
+                        <option value="" disabled selected>— Select your tax authority —</option>
+                        <th:block th:with="regions=${#lists.sort(#lists.toList(#sets.toSet(dpiList.![region])))}">
+                            <optgroup th:each="region : ${regions}" th:label="${region}">
+                                <option th:each="dpi : ${dpiList}"
+                                        th:if="${dpi.region == region}"
+                                        th:value="${dpi.id}"
+                                        th:text="${(dpi.code != null) ? dpi.code + ' · ' + dpi.name : dpi.name}">
+                                </option>
+                            </optgroup>
+                        </th:block>
+                    </select>
+                    <span class="decl-hint">Select your local tax authority by region</span>
                 </div>
 
                 <div class="decl-actions">

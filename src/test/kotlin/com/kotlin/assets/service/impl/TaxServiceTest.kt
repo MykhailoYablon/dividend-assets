@@ -472,6 +472,48 @@ class TaxServiceTest {
         verify(totalStockReportRepository).save(existingReport)
     }
 
+    // ─── deleteStockReport ─────────────────────────────────────────────────────
+
+    @Test
+    fun `deleteStockReport - deletes report when it exists for year`() {
+        val report = TotalStockReport(id = 1L, year = year, status = ReportStatus.CALCULATED)
+        whenever(totalStockReportRepository.findByYear(year)).thenReturn(Optional.of(report))
+
+        taxService.deleteStockReport(year)
+
+        verify(totalStockReportRepository).delete(report)
+    }
+
+    @Test
+    fun `deleteStockReport - does nothing when no report exists for year`() {
+        whenever(totalStockReportRepository.findByYear(year)).thenReturn(Optional.empty())
+
+        taxService.deleteStockReport(year)
+
+        verify(totalStockReportRepository, never()).delete(any<TotalStockReport>())
+    }
+
+    // ─── deleteDividendReport ──────────────────────────────────────────────────
+
+    @Test
+    fun `deleteDividendReport - deletes report when it exists for year`() {
+        val report = TotalDividendReport(id = 1L, year = year, status = ReportStatus.CALCULATED)
+        whenever(totalDividendReportRepository.findByYear(year)).thenReturn(Optional.of(report))
+
+        taxService.deleteDividendReport(year)
+
+        verify(totalDividendReportRepository).delete(report)
+    }
+
+    @Test
+    fun `deleteDividendReport - does nothing when no report exists for year`() {
+        whenever(totalDividendReportRepository.findByYear(year)).thenReturn(Optional.empty())
+
+        taxService.deleteDividendReport(year)
+
+        verify(totalDividendReportRepository, never()).delete(any<TotalDividendReport>())
+    }
+
     @Test
     fun `calculateTax - empty trades and dividends produces zero totals`() {
         whenever(parser.parseIbCsv(any())).thenReturn(Pair(emptyMap(), emptyList()))

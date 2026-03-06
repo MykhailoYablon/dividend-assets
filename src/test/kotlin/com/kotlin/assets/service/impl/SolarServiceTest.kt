@@ -224,6 +224,22 @@ class SolarServiceTest {
         verify(model).addAttribute("reports", emptyList<SolarReport>())
     }
 
+    // ---- deleteAllReports ----
+
+    @Test
+    fun `deleteAllReports should call deleteAllByUserId with correct userId`() {
+        solarReportService.deleteAllReports(userId)
+
+        verify(solarFileReportRepository).deleteAllByUserId(userId)
+    }
+
+    @Test
+    fun `deleteAllReports should not interact with solarRepository`() {
+        solarReportService.deleteAllReports(userId)
+
+        verifyNoInteractions(solarRepository)
+    }
+
     // ---- buildStatistics ----
 
     @Test

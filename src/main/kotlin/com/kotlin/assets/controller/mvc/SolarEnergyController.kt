@@ -63,6 +63,12 @@ class SolarEnergyController(
         return "solar"
     }
 
+    @PostMapping("/solar/delete")
+    fun deleteSolarReports(@AuthenticationPrincipal user: MyUserDetails): String {
+        solarService.deleteAllReports(user.getId())
+        return "redirect:/solar"
+    }
+
     @GetMapping("/statistics")
     fun statistics(model: Model): String {
         val statistics = solarService.buildStatistics()
